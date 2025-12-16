@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./images/favicon.png" type="image/png" />
+    <title>Quay số trúng thưởng - KHASERVICE</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="fallingCanvasMai"></canvas>
+    <canvas id="fallingCanvasDao"></canvas>
+    <!-- Hoa mai cố định ở góc phải -->
+    <img src="./images/mai.png" class="fixed-flower fixed-mai" alt="Hoa Mai" />
+
+    <!-- Hoa đào cố định ở góc trái -->
+    <img src="./images/dao.png" class="fixed-flower fixed-dao" alt="Hoa Đào" />
+    <div class="container">
+      <audio id="audio-player" src="./musics/lucky-number.mp3"></audio>
+      <audio id="audio-player1" src="./musics/number.mp3"></audio>
+      <!-- <audio id="audio-player2" autoplay loop>
+        <source src="./musics/theme.mp3" type="audio/mp3" />
+      </audio> -->
+      <script>
+        const { ipcRenderer } = require('electron');
+        const audioPlayer2 = document.getElementById("audio-player2");
+      
+        // Lắng nghe sự kiện tắt/bật âm thanh từ main process
+        ipcRenderer.on("toggle-sound", (event, { muted }) => {
+          if (muted) {
+            console.log("Âm thanh đã bị tắt");
+            audioPlayer2.pause(); // Dừng âm thanh khi tắt
+          } else {
+            console.log("Âm thanh đã được bật");
+            audioPlayer2.play(); // Tiếp tục phát âm thanh khi bật
+          }
+        });
+      </script>
+      <div>
+        <img
+          src="./images/logo.png"
+          alt="Logo"
+          class="logo"
+          style="width: 30%; height: auto"
+        />
+        <h1
+          style="
+            font-family: 'Quicksand', sans-serif;
+            color: #ffd700;
+            font-size: 52px;
+            font-weight: bold 700;
+            margin: auto;
+          "
+        >
+          Quay số trúng thưởng
+        </h1>
+        <h2
+          class="price"
+          style="font-family: 'Quicksand', sans-serif; color: #ffd700"
+        ></h2>
+        <!-- Tiêu đề giải thưởng -->
+      </div>
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 20px;
+        "
+      >
+        <div class="number-display">
+          <div class="number" id="number1">0</div>
+          <div class="number" id="number2">0</div>
+          <div class="number" id="number3">0</div>
+        </div>
+        <div class="manual-spin-button">
+          <button>QUAY</button>
+        </div>
+      </div>
+      <div class="number-buttons">
+        <button class="spin-small" data-prize="Giải đặc biệt" data-count="1">
+          Giải đặc biệt
+        </button>
+        <button class="spin-small" data-prize="Giải nhất" data-count="1">
+          Giải nhất
+        </button>
+        <button class="spin-small" data-prize="Giải nhì" data-count="3">
+          Giải nhì
+        </button>
+        <button class="spin-small" data-prize="Giải ba" data-count="5">
+          Giải ba
+        </button>
+        <button
+          class="spin-small"
+          data-prize="Giải khuyến khích"
+          data-count="10"
+        >
+          Giải khuyến khích
+        </button>
+        <button class="spin-small" data-prize="Giải phụ" data-count="20">
+          Giải phụ
+        </button>
+      </div>
+
+      <div class="results">
+        <h3>Danh sách kết quả đã quay:</h3>
+        <ul id="result-list"></ul>
+      </div>
+    </div>
+    <!-- Modal -->
+    <div id="notification-modal" class="modal hidden">
+      <div class="modal-content">
+        <p id="modal-message"></p>
+        <button id="close-modal">OK</button>
+      </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+    <script src="./script.js"></script>
+    <script src="./fallingFlowers.js"></script>
+    <div id="infoModal" class="modal-info">
+      <div class="modal-info-content">
+        <img src="./images/gif-info.gif" alt="Welcome Animation" />
+      </div>
+    </div>
+
+    <div id="congratulationsModal" class="modal-info-congrat">
+      <div class="modal-info-content-congrat">
+        <!-- <img src="./images/congrat.png" alt="Congratulations Image" class="congrat-img" /> -->
+        <img
+          src="./images/gif-congrat.gif"
+          alt="Congrat Animation"
+          class="congrat-img"
+        />
+        <div id="lucky-number-display" class="lucky-number">000</div>
+      </div>
+    </div>
+
+    <script>
+      // Lấy modal
+      const infoModal = document.getElementById("infoModal");
+
+      // Đóng modal khi bấm ra ngoài
+      infoModal.addEventListener("click", function (e) {
+        if (e.target === infoModal) {
+          infoModal.classList.add("hidden"); // Thêm lớp hidden để ẩn modal
+        }
+      });
+
+      // Hiển thị modal khi trang được tải
+      window.addEventListener("load", function () {
+        infoModal.classList.remove("hidden");
+      });
+    </script>
+  </body>
+</html>

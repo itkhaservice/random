@@ -1,0 +1,434 @@
+body {
+    font-family: 'Quicksand', sans-serif !important;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+
+}
+
+.logo {
+    margin-bottom: 20px;
+}
+
+.number-display {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.number {
+    font-size: 50px;
+    font-weight: bold;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #000;
+    margin: 0 5px;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+.number-buttons {
+    margin: 20px 0;
+}
+
+button {
+    font-weight: bolder;
+    padding: 10px 20px;
+    font-size: 16px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0f7f44;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #FFD700;
+}
+
+.results {
+    margin-top: 20px;
+}
+
+#result-list {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+body {
+    margin: 0;
+    /* Loại bỏ margin mặc định */
+    padding: 0;
+    /* Loại bỏ padding mặc định */
+    overflow: hidden;
+    /* Ẩn cuộn nếu xuất hiện */
+    position: relative;
+    z-index: 0;
+    height: 100vh;
+    /* Chiều cao của toàn bộ viewport */
+    width: 100vw;
+    /* Chiều rộng của toàn bộ viewport */
+    background-image: url('./images/background.png');
+    /* Đường dẫn hình nền */
+    background-size: cover;
+    /* Nền bao phủ toàn bộ khu vực */
+    background-position: center;
+    /* Hình nền căn giữa */
+    background-repeat: no-repeat;
+    /* Không lặp hình nền */
+}
+
+
+
+.background {
+
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    /* Nằm dưới cùng */
+
+}
+
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    /* Trên background nhưng dưới container */
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    /* Đảm bảo không chặn sự kiện trên các phần tử khác */
+}
+
+#canvas1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    /* Trên background nhưng dưới container */
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    /* Đảm bảo không chặn sự kiện trên các phần tử khác */
+}
+
+.container {
+    position: relative;
+    z-index: 3;
+    /* Trên cùng */
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.results h3 {
+    color: white;
+    font-family: 'Quicksand', sans-serif !important;
+    font-size: 20px;
+}
+
+#result-list li {
+    text-align: center;
+    color: white;
+    font-family: 'Quicksand', sans-serif !important;
+    font-size: 24px;
+}
+
+.manual-spin-button button {
+    background: linear-gradient(to bottom, #FFD700, #ffec80);
+    /* Tạo hiệu ứng chuyển màu */
+    color: red;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 30px;
+    /* Tạo góc bo tròn */
+    padding: 10px 30px;
+    /* Khoảng cách bên trong nút */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+    /* Tạo bóng nút */
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    /* Hiệu ứng khi hover */
+}
+
+.manual-spin-button button:hover {
+    transform: scale(1.05);
+    /* Phóng to nhẹ khi hover */
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.4);
+    /* Tăng bóng khi hover */
+}
+
+.manual-spin-button button:active {
+    transform: scale(0.95);
+    /* Nhấn vào làm nhỏ nhẹ */
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    /* Giảm bóng khi nhấn */
+}
+
+
+
+.number-display {
+    display: flex;
+    gap: 5px;
+}
+
+.number {
+    font-size: 2rem;
+    padding: 10px;
+    border: 1px solid #ccc;
+    text-align: center;
+    width: 50px;
+    color: red;
+    /* Chữ màu đỏ */
+    font-weight: bold;
+    /* Làm chữ đậm */
+    text-shadow:
+        1px 1px 0px #fff,
+        /* Viền trắng ở các hướng */
+        -1px 1px 0px #fff,
+        1px -1px 0px #fff,
+        -1px -1px 0px #fff;
+}
+
+
+
+/* ================ */
+/* Modal container */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.modal:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modal content */
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal-content p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+}
+
+.modal-content button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modal-content button:hover {
+    background-color: #0056b3;
+}
+
+.fixed-flower {
+    position: absolute;
+    z-index: 10;
+}
+
+.fixed-mai {
+    top: 10px;
+    right: 10px;
+    width: 160px;
+    /* Kích thước hoa mai */
+}
+
+.fixed-dao {
+    top: 10px;
+    left: 10px;
+    width: 160px;
+    /* Kích thước hoa đào */
+}
+
+#fallingCanvasMai {
+    position: fixed;
+    /* Cố định vị trí trên màn hình */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99998;
+    /* Nằm trên tất cả mọi thứ */
+    pointer-events: none;
+    /* Để không ảnh hưởng đến thao tác người dùng trên nội dung */
+}
+
+#fallingCanvasDao {
+    position: fixed;
+    /* Cố định vị trí trên màn hình */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99997;
+    /* Nằm trên tất cả mọi thứ */
+    pointer-events: none;
+    /* Để không ảnh hưởng đến thao tác người dùng trên nội dung */
+}
+
+/* =================================== */
+/* Modal toàn màn hình */
+.modal-info {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.6);
+    /* Màu nền mờ */
+    z-index: 1000;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Nội dung modal */
+.modal-info-content {
+    background: transparent;
+    /* Không nền */
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+/* Ẩn modal */
+.modal-info.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Hình GIF */
+.modal-info-content img {
+    max-width: 90vw;
+    /* Giới hạn kích thước ngang */
+    max-height: 90vh;
+    /* Giới hạn kích thước dọc */
+    border-radius: 10px;
+}
+
+.number-display .number {
+    background-color: white;
+    box-shadow: inset 0 0 0 2px red;
+    border: 2px solid yellow;
+}
+
+#congratulations-container {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#congratulations-container.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ====================================================================== */
+/* Modal container */
+.modal-info-congrat {
+    display: none;
+    /* Ẩn modal mặc định */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Hiệu ứng mờ */
+    z-index: 99999;
+}
+
+/* Modal content */
+.modal-info-content-congrat {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: auto;
+    text-align: center;
+}
+
+.congrat-img {
+    width: 100%;
+    /* Chiều rộng full modal */
+    height: auto;
+    /* Duy trì tỷ lệ ảnh */
+    border-radius: 15px;
+    /* Tùy chỉnh bo góc nếu cần */
+    /* Đổ bóng */
+}
+
+.lucky-number {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10rem;
+    font-weight: bolder;
+    color: #f8d329;
+    -webkit-text-stroke: 2px #800205;
+    /* Viền trắng dày 2px */
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    /* Tạo hiệu ứng bóng */
+
+    /* animation: blink 1s infinite; */
+    /* Hiệu ứng nhấp nháy */
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+        /* Chữ hiện rõ */
+    }
+
+    50% {
+        opacity: 0;
+        /* Chữ mờ đi */
+    }
+}
