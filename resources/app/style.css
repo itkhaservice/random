@@ -432,3 +432,112 @@ body {
         /* Chữ mờ đi */
     }
 }
+
+/* Prize Settings Modal Styles */
+#prize-list-editor {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.prize-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.prize-entry input[type="text"],
+.prize-entry input[type="number"] {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Quicksand', sans-serif;
+}
+
+.prize-entry input[type="number"] {
+    max-width: 80px;
+}
+
+.settings-button {
+    font-family: 'Quicksand', sans-serif;
+    font-weight: bold;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#add-prize-button {
+    background-color: #28a745;
+    color: white;
+    width: 100%;
+}
+
+#add-prize-button:hover {
+    background-color: #218838;
+}
+
+.delete-prize-button {
+    background-color: #dc3545;
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.delete-prize-button:hover {
+    background-color: #c82333;
+}
+
+.modal-actions .save {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-actions .save:hover {
+    background-color: #0069d9;
+}
+
+.modal-actions .cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.modal-actions .cancel:hover {
+    background-color: #5a6268;
+}
+
+/* Branding Settings Modal Styles */
+#branding-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.setting-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.setting-entry label {
+    font-weight: bold;
+    color: #555;
+}
+
+.setting-entry input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Quicksand', sans-serif;
+}

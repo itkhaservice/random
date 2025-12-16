@@ -1,17 +1,17 @@
+const { ipcRenderer } = require("electron");
+
 document.addEventListener("DOMContentLoaded", () => {
   const number1 = document.getElementById("number1");
   const number2 = document.getElementById("number2");
   const number3 = document.getElementById("number3");
   const resultList = document.getElementById("result-list");
-  const spinButtons = document.querySelectorAll(".spin-small");
   const manualSpinButton = document.querySelector(".manual-spin-button button");
   const priceElement = document.querySelector(".price");
+  const numberButtonsContainer = document.querySelector(".number-buttons");
+
   let selectedPrize = null;
   let spinsLeft = 0;
-  
-
-  // Lưu trạng thái từng giải thưởng
-  const prizeStatus = {};
+  let prizeStatus = {};
 
   // Modal hiển thị thông báo
   const modal = document.getElementById("notification-modal");
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.remove("hidden");
   }
 
-  // Cập nhật trạng thái giải thưởng được chọn
+    // Cập nhật trạng thái giải thưởng được chọn
   function updateSelectedPrize(prize, count) {
     if (!prizeStatus[prize]) {
       prizeStatus[prize] = { spinsLeft: count, isCompleted: false };
@@ -36,6 +36,42 @@ document.addEventListener("DOMContentLoaded", () => {
     spinsLeft = prizeStatus[prize].spinsLeft;
     priceElement.textContent = `Đã chọn: ${prize}. Số lần quay: ${spinsLeft}`;
   }
+
+  // Hàm reset trạng thái khi có thay đổi
+  function resetState() {
+    prizeStatus = {};
+    selectedPrize = null;
+    spinsLeft = 0;
+    resultList.innerHTML = "";
+    priceElement.textContent = "Vui lòng chọn giải thưởng để bắt đầu!";
+  }
+
+  // Gán sự kiện cho các nút giải thưởng
+  function bindPrizeButtonEvents() {
+    const spinButtons = document.querySelectorAll(".spin-small");
+    spinButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const prize = button.getAttribute("data-prize");
+        const count = parseInt(button.getAttribute("data-count"), 10);
+        const audioPlayer1 = document.getElementById("audio-player1");
+        audioPlayer1.play();
+        if (prizeStatus[prize]?.isCompleted) {
+          showModal(`${prize} đã hoàn tất quay. Vui lòng chọn giải khác!`);
+          return;
+        }
+        updateSelectedPrize(prize, count);
+      });
+      button.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+        }
+      });
+    });
+  }
+
+  // Khởi tạo ban đầu
+  bindPrizeButtonEvents();
+
 
   // Kiểm tra xem giải có còn lượt quay không
   function checkSpinAvailability() {
@@ -86,92 +122,6 @@ document.addEventListener("DOMContentLoaded", () => {
       audioPlayer.currentTime = 0;
     }, 3000);
   }
-
-  // Hiển thị số may mắn và cập nhật trạng thái
-  // function displayLuckyNumber() {
-  //   const luckyNumber = String(Math.floor(Math.random() * 491)).padStart(
-  //     3,
-  //     "0"
-  //   );
-  //   changeBackgroundColorWhite(number1);
-
-  //   changeBackgroundColorWhite(number2);
-
-  //   changeBackgroundColorWhite(number3);
-  //   const [digit1, digit2, digit3] = luckyNumber;
-
-  //   let interval = animateNumbers(0);
-
-  //   setTimeout(() => {
-  //     manualSpinButton.disabled = true;
-  //     manualSpinButton.style.backgroundColor = "#ccc";
-  //     manualSpinButton.style.cursor = "not-allowed";
-
-  //     clearInterval(interval);
-  //     number1.textContent = digit1;
-  //     const audioPlayer1 = document.getElementById("audio-player1");
-  //     audioPlayer1.play();
-  //     changeBackgroundColor(number1);
-  //     interval = animateNumbers(1);
-
-  //     setTimeout(() => {
-  //       clearInterval(interval);
-  //       number2.textContent = digit2;
-  //       const audioPlayer1 = document.getElementById("audio-player1");
-  //       audioPlayer1.play();
-  //       changeBackgroundColor(number2);
-  //       interval = animateNumbers(2);
-
-  //       setTimeout(() => {
-  //         clearInterval(interval);
-  //         number3.textContent = digit3;
-  //         const audioPlayer1 = document.getElementById("audio-player1");
-  //         changeBackgroundColor(number3);
-  //         audioPlayer1.play();
-
-  //         const prizeMapping = {
-  //           "Giải đặc biệt": "one",
-  //           "Giải nhất": "two",
-  //           "Giải nhì": "three",
-  //           "Giải ba": "four",
-  //           "Giải khuyến khích": "five",
-  //           "Giải phụ": "six",
-  //         };
-  //         const prizeCode = prizeMapping[selectedPrize];
-  //         let resultItem = document.querySelector(`#result-${prizeCode}`);
-  //         if (!resultItem) {
-  //           resultItem = document.createElement("li");
-  //           resultItem.id = `result-${prizeCode}`;
-  //           resultItem.innerHTML = `<strong>${selectedPrize}: </strong><span class="lucky-numbers" style="color: #FFD700;"></span>`;
-  //           resultList.appendChild(resultItem);
-  //         }
-  //         const luckyNumbersSpan = resultItem.querySelector(".lucky-numbers");
-  //         luckyNumbersSpan.textContent += luckyNumbersSpan.textContent
-  //           ? `, ${luckyNumber}`
-  //           : luckyNumber;
-
-  //         setTimeout(() => {
-  //           showCongratulationsMessage(luckyNumber);
-  //           playAudio();
-  //         }, 1000);
-
-  //         manualSpinButton.disabled = false;
-  //         manualSpinButton.style.backgroundColor = "yellow";
-  //         manualSpinButton.style.cursor = "pointer";
-
-  //         spinsLeft--;
-  //         prizeStatus[selectedPrize].spinsLeft = spinsLeft;
-
-  //         if (spinsLeft === 0) {
-  //           prizeStatus[selectedPrize].isCompleted = true;
-  //           priceElement.textContent = `${selectedPrize} đã hoàn tất quay số!`;
-  //         } else {
-  //           priceElement.textContent = `Đã chọn: ${selectedPrize}. Còn lại: ${spinsLeft}`;
-  //         }
-  //       }, 1000);
-  //     }, 1000);
-  //   }, 1000);
-  // }
 
   // Hàm để vô hiệu hóa phím Enter
   function disableEnterKey() {
@@ -230,22 +180,16 @@ document.addEventListener("DOMContentLoaded", () => {
           changeBackgroundColor(number3);
           audioPlayer1.play();
 
-          const prizeMapping = {
-            "Giải đặc biệt": "one",
-            "Giải nhất": "two",
-            "Giải nhì": "three",
-            "Giải ba": "four",
-            "Giải khuyến khích": "five",
-            "Giải phụ": "six",
-          };
-          const prizeCode = prizeMapping[selectedPrize];
-          let resultItem = document.querySelector(`#result-${prizeCode}`);
+          // Thêm số trúng thưởng vào danh sách kết quả
+          let resultItem = Array.from(resultList.children).find(li => li.dataset.prize === selectedPrize);
+
           if (!resultItem) {
-            resultItem = document.createElement("li");
-            resultItem.id = `result-${prizeCode}`;
-            resultItem.innerHTML = `<strong>${selectedPrize}: </strong><span class="lucky-numbers" style="color: #FFD700;"></span>`;
-            resultList.appendChild(resultItem);
+              resultItem = document.createElement("li");
+              resultItem.dataset.prize = selectedPrize;
+              resultItem.innerHTML = `<strong>${selectedPrize}: </strong><span class="lucky-numbers" style="color: #FFD700;"></span>`;
+              resultList.appendChild(resultItem);
           }
+
           const luckyNumbersSpan = resultItem.querySelector(".lucky-numbers");
           luckyNumbersSpan.textContent += luckyNumbersSpan.textContent
             ? `, ${luckyNumber}`
@@ -317,36 +261,169 @@ document.addEventListener("DOMContentLoaded", () => {
 
   manualSpinButton.addEventListener("click", handleSpinToggle);
 
-  // Lắng nghe sự kiện chọn giải thưởng
-  spinButtons.forEach((button) => {
-    const prize = button.getAttribute("data-prize");
-    const count = parseInt(button.getAttribute("data-count"), 10);
-    button.addEventListener("click", () => {
-      const audioPlayer1 = document.getElementById("audio-player1");
-      audioPlayer1.play();
-      if (prizeStatus[prize]?.isCompleted) {
-        showModal(`${prize} đã hoàn tất quay. Vui lòng chọn giải khác!`);
-        return;
+  // --- IPC LISTENERS ---
+
+  // Listener for toggling sound
+  ipcRenderer.on("toggle-sound", (event, { muted }) => {
+    console.log(`[IPC] Received 'toggle-sound' with muted: ${muted}`);
+    const audioPlayer2 = document.getElementById("audio-player2");
+    if (!audioPlayer2) {
+      console.error("[Audio] Player 'audio-player2' not found!");
+      return;
+    }
+
+    if (muted) {
+      audioPlayer2.pause();
+      console.log("[Audio] Paused.");
+    } else {
+      const playPromise = audioPlayer2.play();
+      if (playPromise !== undefined) {
+        playPromise.then(_ => {
+          console.log("[Audio] Playback started successfully.");
+        }).catch(error => {
+          console.error("[Audio] Playback failed:", error);
+        });
       }
-      updateSelectedPrize(prize, count);
-    });
-    button.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-      }
-    });
+    }
   });
 
-  // Các hàm không liên quan khác (ví dụ như tương tác giao diện hoặc sự kiện bổ sung)
-  function resetPrizeSelection() {
-    selectedPrize = null;
-    spinsLeft = 0;
-    priceElement.textContent = "Vui lòng chọn giải thưởng để bắt đầu!";
+  // Listener for changing background
+  ipcRenderer.on("set-background", (event, filePath) => {
+    if (filePath) {
+      const formattedPath = filePath.replace(/\\/g, "/");
+      document.body.style.backgroundImage = `url('${formattedPath}')`;
+    }
+  });
+
+  // Listener for logo updates
+  ipcRenderer.on("logo-updated", () => {
+    const logoImage = document.querySelector(".logo");
+    if (logoImage) {
+      // Append a timestamp to the src to break the cache
+      logoImage.src = "./images/logo.png?" + new Date().getTime();
+    }
+  });
+
+  // --- LOGIC FOR PRIZE SETTINGS MODAL ---
+  const prizeSettingsModal = document.getElementById("prize-settings-modal");
+  const prizeListEditor = document.getElementById("prize-list-editor");
+  const addPrizeButton = document.getElementById("add-prize-button");
+  const savePrizesButton = document.getElementById("save-prizes-button");
+  const cancelPrizesButton = document.getElementById("cancel-prizes-button");
+
+  ipcRenderer.on('open-prize-settings', () => {
+    openPrizeSettingsModal();
+  });
+  
+  function createPrizeEntry(name = "", count = 1) {
+    const entryDiv = document.createElement("div");
+    entryDiv.className = "prize-entry";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.placeholder = "Tên giải thưởng";
+    nameInput.value = name;
+
+    const countInput = document.createElement("input");
+    countInput.type = "number";
+    countInput.min = "1";
+    countInput.value = count;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Xóa";
+    deleteButton.className = "delete-prize-button";
+    deleteButton.addEventListener("click", () => {
+        entryDiv.remove();
+    });
+
+    entryDiv.appendChild(nameInput);
+    entryDiv.appendChild(countInput);
+    entryDiv.appendChild(deleteButton);
+
+    return entryDiv;
+  }
+  
+  function openPrizeSettingsModal() {
+    prizeListEditor.innerHTML = ""; // Xóa các entry cũ
+    const currentPrizeButtons = document.querySelectorAll(".spin-small");
+    currentPrizeButtons.forEach(button => {
+        const name = button.dataset.prize;
+        const count = button.dataset.count;
+        const prizeEntry = createPrizeEntry(name, count);
+        prizeListEditor.appendChild(prizeEntry);
+    });
+    prizeSettingsModal.classList.remove("hidden");
   }
 
-  function clearResultList() {
-    resultList.innerHTML = "";
-  }
+  addPrizeButton.addEventListener("click", () => {
+    prizeListEditor.appendChild(createPrizeEntry());
+  });
+
+  cancelPrizesButton.addEventListener("click", () => {
+    prizeSettingsModal.classList.add("hidden");
+  });
+
+  savePrizesButton.addEventListener("click", () => {
+    numberButtonsContainer.innerHTML = ""; // Xóa các nút cũ
+    const prizeEntries = prizeListEditor.querySelectorAll(".prize-entry");
+    
+    prizeEntries.forEach(entry => {
+        const nameInput = entry.querySelector('input[type="text"]');
+        const countInput = entry.querySelector('input[type="number"]');
+        const prizeName = nameInput.value.trim();
+        const prizeCount = countInput.value;
+
+        if (prizeName && prizeCount > 0) {
+            const newButton = document.createElement("button");
+            newButton.className = "spin-small";
+            newButton.dataset.prize = prizeName;
+            newButton.dataset.count = prizeCount;
+            newButton.textContent = prizeName;
+            numberButtonsContainer.appendChild(newButton);
+        }
+    });
+
+    resetState();
+    bindPrizeButtonEvents(); // Gán lại sự kiện cho các nút mới
+    prizeSettingsModal.classList.add("hidden");
+  });
+
+  // --- LOGIC FOR BRANDING SETTINGS MODAL ---
+  const brandingModal = document.getElementById("branding-settings-modal");
+  const companyNameInput = document.getElementById("company-name-input");
+  const logoFileInput = document.getElementById("logo-file-input");
+  const saveBrandingButton = document.getElementById("save-branding-button");
+  const cancelBrandingButton = document.getElementById("cancel-branding-button");
+
+  ipcRenderer.on("open-branding-settings", (event, { currentName }) => {
+    companyNameInput.value = currentName || "";
+    logoFileInput.value = ""; // Clear file input
+    brandingModal.classList.remove("hidden");
+  });
+
+  cancelBrandingButton.addEventListener("click", () => {
+    brandingModal.classList.add("hidden");
+  });
+
+  saveBrandingButton.addEventListener("click", () => {
+    const name = companyNameInput.value.trim();
+    const logoFile = logoFileInput.files[0];
+
+    const payload = {};
+    if (name) {
+      payload.name = name;
+    }
+    if (logoFile) {
+      payload.logoPath = logoFile.path;
+    }
+
+    if (payload.name || payload.logoPath) {
+      ipcRenderer.send("update-branding", payload);
+    }
+    
+    brandingModal.classList.add("hidden");
+  });
+
 });
 
 function changeBackgroundColor(element) {
@@ -358,6 +435,7 @@ function changeBackgroundColorWhite(element) {
 }
 
 // =============================================================
+// Fireworks animation code remains unchanged
 window.requestAnimFrame = (function () {
   return (
     window.requestAnimationFrame ||
@@ -441,7 +519,7 @@ Firework.prototype.update = function (index) {
     vy = Math.sin(this.angle) * this.speed;
 
   this.distanceTraveled = calculateDistance(
-    this.sx,
+    this.sx, 
     this.sy,
     this.x + vx,
     this.y + vy

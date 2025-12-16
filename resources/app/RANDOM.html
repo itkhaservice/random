@@ -22,24 +22,9 @@
     <div class="container">
       <audio id="audio-player" src="./musics/lucky-number.mp3"></audio>
       <audio id="audio-player1" src="./musics/number.mp3"></audio>
-      <!-- <audio id="audio-player2" autoplay loop>
+      <audio id="audio-player2" loop>
         <source src="./musics/theme.mp3" type="audio/mp3" />
-      </audio> -->
-      <script>
-        const { ipcRenderer } = require('electron');
-        const audioPlayer2 = document.getElementById("audio-player2");
-      
-        // Lắng nghe sự kiện tắt/bật âm thanh từ main process
-        ipcRenderer.on("toggle-sound", (event, { muted }) => {
-          if (muted) {
-            console.log("Âm thanh đã bị tắt");
-            audioPlayer2.pause(); // Dừng âm thanh khi tắt
-          } else {
-            console.log("Âm thanh đã được bật");
-            audioPlayer2.play(); // Tiếp tục phát âm thanh khi bật
-          }
-        });
-      </script>
+      </audio>
       <div>
         <img
           src="./images/logo.png"
@@ -116,6 +101,42 @@
       <div class="modal-content">
         <p id="modal-message"></p>
         <button id="close-modal">OK</button>
+      </div>
+    </div>
+
+    <!-- Prize Settings Modal -->
+    <div id="prize-settings-modal" class="modal hidden">
+      <div class="modal-content" style="max-width: 600px;">
+        <h2 style="text-align: center; color: #333;">Cài đặt giải thưởng</h2>
+        <div id="prize-list-editor">
+          <!-- Prize entries will be dynamically inserted here -->
+        </div>
+        <button id="add-prize-button" class="settings-button">Thêm giải thưởng</button>
+        <div class="modal-actions" style="text-align: center; margin-top: 20px;">
+          <button id="save-prizes-button" class="settings-button save">Lưu thay đổi</button>
+          <button id="cancel-prizes-button" class="settings-button cancel">Hủy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Branding Settings Modal -->
+    <div id="branding-settings-modal" class="modal hidden">
+      <div class="modal-content" style="max-width: 600px;">
+        <h2 style="text-align: center; color: #333;">Tùy chỉnh thương hiệu</h2>
+        <div id="branding-editor">
+          <div class="setting-entry">
+            <label for="company-name-input">Tên công ty</label>
+            <input type="text" id="company-name-input" placeholder="Nhập tên công ty">
+          </div>
+          <div class="setting-entry">
+            <label for="logo-file-input">Tệp logo</label>
+            <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/gif">
+          </div>
+        </div>
+        <div class="modal-actions" style="text-align: center; margin-top: 20px;">
+          <button id="save-branding-button" class="settings-button save">Lưu thay đổi</button>
+          <button id="cancel-branding-button" class="settings-button cancel">Hủy</button>
+        </div>
       </div>
     </div>
 
