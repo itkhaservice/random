@@ -2,6 +2,7 @@ const { app, BrowserWindow, Menu, dialog, shell, ipcMain } = require("electron")
 const path = require("path");
 const fs = require("fs");
 const log = require('electron-log');
+const _ = require('lodash');
 
 // =================================================================
 // Configuration and Paths
@@ -25,7 +26,7 @@ const userCustomLogoPath = path.join(userLogoDir, "logo.png");
 const userCustomFaviconPath = path.join(userLogoDir, "favicon.png");
 
 let mainWindow;
-let settings = {
+const defaultSettings = {
   isMuted: false,
   companyName: "KHASERVICE",
   customMusicPath: null,
@@ -33,7 +34,20 @@ let settings = {
   customFaviconPath: null,
   customInfoImagePath: null,
   customBackgroundImagePath: null,
+  effects: {
+      flowers: {
+          enabled: true,
+          speed: 1,
+      },
+      fireworks: {
+          enabled: true,
+          style: 'classic', // Default style
+          availableStyles: ['classic', 'falling_rain', 'big_bang', 'twinkle', 'double_burst']
+      }
+  }
 };
+let settings = _.cloneDeep(defaultSettings);
+
 
 // =================================================================
 // Utility Functions
@@ -96,15 +110,19 @@ function loadSettings() {
   try {
     if (fs.existsSync(settingsPath)) {
       const loadedSettings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"));
-      for (const key in loadedSettings) {
-          if (key.includes('Path') && loadedSettings[key] && !fs.existsSync(loadedSettings[key])) {
-             loadedSettings[key] = null;
+      // Deep merge with defaults to ensure new settings properties are added
+      settings = _.merge(_.cloneDeep(defaultSettings), loadedSettings);
+      
+      // Validate paths
+      for (const key in settings) {
+          if (key.includes('Path') && settings[key] && typeof settings[key] === 'string' && !fs.existsSync(settings[key])) {
+             settings[key] = null;
           }
       }
-      settings = { ...settings, ...loadedSettings };
     }
   } catch (error) {
     log.error("Failed to load settings:", error);
+    settings = _.cloneDeep(defaultSettings);
   }
 }
 
@@ -121,7 +139,7 @@ app.on("ready", () => {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      webSecurity: false // Kept for simplicity, though Data URLs make it less critical
+      webSecurity: false
     },
   });
 
@@ -137,8 +155,9 @@ app.on("ready", () => {
         faviconUrl: imageToDataUrl(getPath('favicon')),
         infoImageUrl: imageToDataUrl(getPath('infoImage')),
         backgroundUrl: imageToDataUrl(getPath('backgroundImage')),
-        musicPath: getPath('music'), // Music still needs path
+        musicPath: getPath('music'),
         isMuted: settings.isMuted,
+        effects: settings.effects,
     });
   });
 
@@ -219,15 +238,10 @@ ipcMain.on("update-info-image", (event, { path: imagePath }) => {
 });
 
 ipcMain.on("update-background-image", (event, arg) => {
-    log.info('update-background-image received arg:', arg);
     const imagePath = arg ? arg.path : undefined;
-
     if (!imagePath) {
-        log.error('update-background-image called with no path.');
-        dialog.showErrorBox("Lỗi", "Không nhận được đường dẫn ảnh nền.");
         return;
     }
-
     try {
         if (!fs.existsSync(userBackgroundDir)) fs.mkdirSync(userBackgroundDir, { recursive: true });
         const targetPath = path.join(userBackgroundDir, path.basename(imagePath));
@@ -239,4 +253,11 @@ ipcMain.on("update-background-image", (event, arg) => {
         log.error("Failed to copy background image:", error);
         dialog.showErrorBox("Lỗi", "Không thể thay đổi ảnh nền.");
     }
+});
+
+ipcMain.on('update-effects-settings', (event, newEffectsSettings) => {
+    settings.effects = _.merge(settings.effects, newEffectsSettings);
+    saveSettings();
+    // Broadcast the confirmed new settings to all windows (or just the main one)
+    mainWindow.webContents.send('effects-settings-updated', settings.effects);
 });

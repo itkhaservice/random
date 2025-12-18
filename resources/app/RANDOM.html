@@ -107,6 +107,9 @@
             <li data-tab="sound">
               <a href="#">Âm thanh</a>
             </li>
+            <li data-tab="effects">
+              <a href="#">Hiệu ứng</a>
+            </li>
           </ul>
            <div class="modal-actions" style="text-align: center; margin-top: 20px; position: absolute; bottom: 20px; width: 100%;">
               <button id="close-settings-button" class="settings-button cancel">Đóng</button>
@@ -161,6 +164,38 @@
                 <label>Đổi nhạc nền</label>
                 <button id="change-music-button" class="settings-button">Chọn tệp nhạc</button>
             </div>
+          </div>
+
+          <!-- Effects Settings -->
+          <div id="effects-settings" class="settings-tab">
+            <h3>Cài đặt hiệu ứng</h3>
+            <div id="effects-editor">
+              <div class="setting-entry-row">
+                <label for="toggle-flowers-checkbox">Hiệu ứng hoa rơi</label>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-flowers-checkbox">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+              <div class="setting-entry">
+                <label for="flower-speed-slider">Tốc độ rơi (hiện tại: <span id="flower-speed-value">1</span>)</label>
+                <input type="range" id="flower-speed-slider" min="0.1" max="5" step="0.1" value="1">
+              </div>
+              <div class="setting-entry-row">
+                <label for="toggle-fireworks-checkbox">Hiệu ứng pháo hoa</label>
+                 <label class="switch">
+                  <input type="checkbox" id="toggle-fireworks-checkbox">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+              <div class="setting-entry">
+                <label>Kiểu pháo hoa</label>
+                <div id="firework-style-cards" class="card-select-container">
+                  <!-- Các thẻ kiểu pháo hoa sẽ được chèn động từ script.js -->
+                </div>
+              </div>
+            </div>
+            <button id="save-effects-button" class="settings-button save">Lưu hiệu ứng</button>
           </div>
         </div>
       </div>
