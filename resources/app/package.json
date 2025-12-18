@@ -32,9 +32,13 @@
     "win": {
       "target": "nsis",
       "icon": "images/icon.ico"
+    },
+    "directories": {
+      "output": "build_output"
     }
   },
   "dependencies": {
-    "electron-log": "^5.4.3"
+    "electron-log": "^5.4.3",
+    "lodash": "^4.17.21"
   }
 }
