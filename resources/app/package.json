@@ -1,16 +1,40 @@
 {
-  "name": "random",
+  "name": "random-music",
   "version": "1.0.0",
-  "description": "",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "electron-builder"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.random.music",
+    "productName": "Random Music",
+    "asar": true,
+    "files": [
+      "**/*",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md}",
+      "!node_modules/*/{test,__tests__,tests,powered-test,example,examples}"
+    ],
+    "extraResources": [
+      {
+        "from": "musics",
+        "to": "musics"
+      },
+      {
+        "from": "images",
+        "to": "images"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "images/icon.ico"
+    }
+  },
   "dependencies": {
-    "electron": "^34.0.0"
+    "electron-log": "^5.4.3"
   }
 }

@@ -287,6 +287,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Listener for music updated from menu
+  ipcRenderer.on("music-updated", (event, { musicPath }) => {
+    console.log(`[IPC] Received 'music-updated'. New music path: ${musicPath}`);
+    const audioPlayer2 = document.getElementById("audio-player2");
+    if (audioPlayer2) {
+      audioPlayer2.src = musicPath; // Cập nhật đường dẫn nhạc
+      audioPlayer2.load(); // Tải nhạc mới
+      audioPlayer2.play(); // Phát nhạc
+    }
+  });
+
+  // Listener for initial music path on app start
+  ipcRenderer.on("initial-music-path", (event, { musicPath }) => {
+    console.log(`[IPC] Received 'initial-music-path'. Setting initial music: ${musicPath}`);
+    const audioPlayer2 = document.getElementById("audio-player2");
+    if (audioPlayer2) {
+      audioPlayer2.src = musicPath;
+      audioPlayer2.load(); // Cần tải để cập nhật src
+      // Playback is controlled by the 'toggle-sound' event
+    }
+  });
+
   // Listener for changing background
   ipcRenderer.on("set-background", (event, filePath) => {
     if (filePath) {
@@ -295,12 +317,78 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Listener for logo updates
-  ipcRenderer.on("logo-updated", () => {
+  // Listener for branding updates
+  ipcRenderer.on("branding-updated", (event, { newName, newLogoPath, newFaviconPath }) => {
+    // Cập nhật tên công ty nếu cần
+    if (newName) {
+      document.title = `Quay số trúng thưởng - ${newName}`;
+      // Cập nhật bất kỳ chỗ nào khác hiển thị tên công ty
+      // Ví dụ: const companyNameElement = document.getElementById("company-name-display");
+      // if (companyNameElement) companyNameElement.textContent = newName;
+    }
+
+    // Cập nhật logo
     const logoImage = document.querySelector(".logo");
-    if (logoImage) {
-      // Append a timestamp to the src to break the cache
-      logoImage.src = "./images/logo.png?" + new Date().getTime();
+    if (logoImage && newLogoPath) {
+      console.log("Attempting to set logo src to:", newLogoPath); // Debug log
+      alert("New logo path received: " + newLogoPath); // THÊM DÒNG NÀY ĐỂ DEBUG
+      logoImage.src = newLogoPath + "?" + new Date().getTime(); // Thêm timestamp để phá cache
+    }
+
+    // Cập nhật favicon (thẻ link)
+    const faviconLink = document.querySelector("link[rel='icon']");
+    if (faviconLink && newFaviconPath) {
+      faviconLink.href = newFaviconPath + "?" + new Date().getTime(); // Thêm timestamp để phá cache
+    }
+  });
+
+  // Listener for initial branding on app start
+  ipcRenderer.on("initial-branding", (event, { newName, newLogoPath, newFaviconPath }) => {
+    // Thiết lập tên công ty ban đầu
+    if (newName) {
+      document.title = `Quay số trúng thưởng - ${newName}`;
+      // Cập nhật bất kỳ chỗ nào khác hiển thị tên công ty
+      // Ví dụ: const companyNameElement = document.getElementById("company-name-display");
+      // if (companyNameElement) companyNameElement.textContent = newName;
+    }
+
+    // Thiết lập logo ban đầu
+    const logoImage = document.querySelector(".logo");
+    if (logoImage && newLogoPath) {
+      console.log("Attempting to set initial logo src to:", newLogoPath); // Debug log
+      logoImage.src = newLogoPath;
+    }
+
+    // Thiết lập favicon ban đầu
+    const faviconLink = document.querySelector("link[rel='icon']");
+    if (faviconLink && newFaviconPath) {
+      faviconLink.href = newFaviconPath;
+    }
+  });
+
+  // Listener for info image updates
+  ipcRenderer.on("info-image-updated", (event, { infoImagePath }) => {
+    console.log(`[IPC] Received 'info-image-updated'. New info image path: ${infoImagePath}`);
+    const infoImageElement = document.querySelector("#infoModal img");
+    if (infoImageElement && infoImagePath) {
+      infoImageElement.src = infoImagePath + "?" + new Date().getTime(); // Phá cache
+    }
+  });
+
+  // Listener for initial info image path on app start
+  ipcRenderer.on("initial-info-image", (event, { infoImagePath }) => {
+    console.log(`[IPC] Received 'initial-info-image'. Setting initial info image: ${infoImagePath}`);
+    const infoImageElement = document.querySelector("#infoModal img");
+    if (infoImageElement && infoImagePath) {
+      infoImageElement.src = infoImagePath;
+    }
+  });
+
+  // Listener to close branding settings modal
+  ipcRenderer.on("close-branding-settings", () => {
+    const brandingModal = document.getElementById("branding-settings-modal");
+    if (brandingModal) {
+      brandingModal.classList.add("hidden");
     }
   });
 

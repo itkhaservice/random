@@ -8,6 +8,8 @@ body {
 
 .logo {
     margin-bottom: 20px;
+    height: 70px; /* Đặt chiều cao là 1000px */
+    width: auto;   /* Chiều rộng tự động để giữ tỷ lệ */
 }
 
 .number-display {
