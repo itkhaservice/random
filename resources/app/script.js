@@ -72,8 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let minSpinValue = 0;
   let maxSpinValue = 999;
   let allowDuplicates = false;
+  let stopInterval = 1200; // Thời gian mặc định
 
   const digitCountInput = document.getElementById('digit-count-input');
+  const stopIntervalInput = document.getElementById('stop-interval-input');
   const minValueInput = document.getElementById('min-value-input');
   const maxValueInput = document.getElementById('max-value-input');
   const allowDuplicateCheckbox = document.getElementById('allow-duplicate-checkbox');
@@ -97,13 +99,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (saveSpinConfigButton) {
     saveSpinConfigButton.addEventListener('click', () => {
         digitCount = parseInt(digitCountInput.value) || 3;
+        stopInterval = parseInt(stopIntervalInput.value) || 1200;
         minSpinValue = parseInt(minValueInput.value) || 0;
         maxSpinValue = parseInt(maxValueInput.value) || 999;
         allowDuplicates = allowDuplicateCheckbox.checked;
 
         renderNumberDisplay();
         
-        const spinConfig = { digitCount, minSpinValue, maxSpinValue, allowDuplicates };
+        const spinConfig = { digitCount, stopInterval, minSpinValue, maxSpinValue, allowDuplicates };
         ipcRenderer.invoke('save-setting', 'spinConfig', spinConfig).then(() => {
             showNotification("Đã lưu cấu hình quay số thành công!");
         });
@@ -113,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (resetSpinConfigButton) {
     resetSpinConfigButton.addEventListener('click', () => {
         digitCountInput.value = 3;
+        stopIntervalInput.value = 1200;
         minValueInput.value = 0;
         maxValueInput.value = 999;
         allowDuplicateCheckbox.checked = false;
@@ -332,6 +336,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isSpinning) {
       isSpinning = true;
       manualSpinButton.textContent = "Dừng";
+      // Xóa các hiệu ứng cũ và bắt đầu nhịp chạy đồng bộ mới
+      numberDisplayContainer.classList.remove('sync-spin');
+      void numberDisplayContainer.offsetWidth; // Trigger reflow
+      numberDisplayContainer.classList.add('sync-spin');
+
+      for (let i = 1; i <= digitCount; i++) {
+          const el = document.getElementById(`number${i}`);
+          if (el) el.classList.remove('glow', 'finalized');
+      }
       spinningInterval = setInterval(() => {
         for (let i = 1; i <= digitCount; i++) {
             const el = document.getElementById(`number${i}`);
@@ -372,16 +385,26 @@ document.addEventListener("DOMContentLoaded", () => {
             if (el) el.textContent = Math.floor(Math.random() * 10);
         }, 50);
 
+        // Sử dụng stopInterval cho cả ô đầu tiên
+        // Ô 1: stopInterval, Ô 2: 2 * stopInterval + gia tốc...
+        const stopDelay = (i + 1) * stopInterval + (i * i * 200);
+
         setTimeout(() => {
             clearInterval(tempInterval);
             const el = document.getElementById(`number${i + 1}`);
-            if (el) el.textContent = luckyString[i];
+            if (el) {
+                el.textContent = luckyString[i];
+                // Thêm hiệu ứng lấp lánh
+                el.classList.remove('glow', 'finalized');
+                void el.offsetWidth; // Trigger reflow
+                el.classList.add('glow', 'finalized');
+            }
             
             // Nếu là ô cuối cùng, hiển thị thông báo chúc mừng
             if (i === digitCount - 1) {
                 finalizeSpin(luckyString);
             }
-        }, (i + 1) * 800); // Mỗi ô dừng cách nhau 800ms
+        }, stopDelay); 
     }
   }
 
@@ -469,11 +492,13 @@ document.addEventListener("DOMContentLoaded", () => {
     ipcRenderer.invoke('get-setting', 'spinConfig').then(config => {
         if (config) {
             digitCount = config.digitCount || 3;
+            stopInterval = config.stopInterval || 1200;
             minSpinValue = config.minSpinValue || 0;
             maxSpinValue = config.maxSpinValue || 999;
             allowDuplicates = config.allowDuplicates || false;
 
             digitCountInput.value = digitCount;
+            stopIntervalInput.value = stopInterval;
             minValueInput.value = minSpinValue;
             maxValueInput.value = maxSpinValue;
             allowDuplicateCheckbox.checked = allowDuplicates;
@@ -678,6 +703,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Spin Config
     if (data.spinConfig) {
         digitCount = data.spinConfig.digitCount || 3;
+        stopInterval = data.spinConfig.stopInterval || 1200;
         minSpinValue = data.spinConfig.minSpinValue || 0;
         maxSpinValue = data.spinConfig.maxSpinValue || 999;
         allowDuplicates = data.spinConfig.allowDuplicates || false;

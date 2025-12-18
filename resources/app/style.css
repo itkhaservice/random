@@ -26,31 +26,92 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid #000;
+    border: 3px double #ffd700; /* Viền kép vàng đồng */
     margin: 0 5px;
     border-radius: 10px;
-    background-color: #fff;
+    background: linear-gradient(135deg, #d40000 0%, #8b0000 100%); /* Nền đỏ Tết */
+    color: #ffd700 !important; /* Chữ vàng */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.number.glow {
+    animation: number-glow 0.8s ease-out;
+}
+
+@keyframes number-glow {
+    0% {
+        box-shadow: 0 0 5px #ffd700, inset 0 0 5px #ffd700;
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 30px #ffd700, inset 0 0 20px #ffd700;
+        transform: scale(1.1);
+        background: linear-gradient(135deg, #ff4500 0%, #d40000 100%);
+    }
+    100% {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        transform: scale(1);
+    }
+}
+
+/* Hiệu ứng vệt sáng chạy vòng quanh viền cho số đã chốt */
+.number {
+    position: relative;
+}
+
+.number::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 3px solid #ffd700;
+    border-radius: 12px;
+    pointer-events: none;
+    opacity: 0; /* Mặc định ẩn */
+    transition: opacity 0.3s;
+}
+
+/* Khi bắt đầu quay, kích hoạt animation chạy ngầm trên tất cả các ô */
+.number-display.sync-spin .number::after {
+    animation: border-run 1.5s linear infinite;
+}
+
+/* Chỉ hiện vệt sáng cho những ô đã chốt số */
+.number.finalized::after {
+    opacity: 1 !important;
+}
+
+@keyframes border-run {
+    0%, 100% { clip-path: inset(0 0 95% 0); } /* Cạnh trên */
+    25% { clip-path: inset(0 0 0 95%); }    /* Cạnh phải */
+    50% { clip-path: inset(95% 0 0 0); }    /* Cạnh dưới */
+    75% { clip-path: inset(0 95% 0 0); }    /* Cạnh trái */
 }
 
 .number-buttons {
     margin: 20px 0;
 }
 
-button {
+button.spin-small {
     font-weight: bolder;
     padding: 10px 20px;
     font-size: 16px;
     margin: 5px;
-    border: none;
+    border: 2px solid #ffd700;
     border-radius: 5px;
-    background-color: #0f7f44;
-    color: #fff;
+    background: linear-gradient(to bottom, #cc0000, #800000);
+    color: #ffd700;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
-button:hover {
-    background-color: #FFD700;
+button.spin-small:hover {
+    background: #ffd700;
+    color: #8b0000;
 }
 
 .results {
@@ -133,9 +194,10 @@ body {
 }
 
 .results h3 {
-    color: white;
+    color: #ffd700;
     font-family: 'Quicksand', sans-serif !important;
     font-size: 20px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
 #result-list li {
@@ -143,15 +205,19 @@ body {
     color: white;
     font-family: 'Quicksand', sans-serif !important;
     font-size: 24px;
+    background: rgba(139, 0, 0, 0.3);
+    margin-bottom: 5px;
+    border-radius: 5px;
+    padding: 5px;
 }
 
 .manual-spin-button button {
-    background: linear-gradient(to bottom, #FFD700, #ffec80);
-    /* Tạo hiệu ứng chuyển màu */
-    color: red;
+    background: linear-gradient(to bottom, #FFD700, #b8860b);
+    /* Tạo hiệu ứng chuyển màu vàng kim loại */
+    color: #8b0000;
     font-size: 1.5rem;
     font-weight: bold;
-    border: none;
+    border: 2px solid #8b0000;
     border-radius: 30px;
     /* Tạo góc bo tròn */
     padding: 10px 30px;
@@ -166,7 +232,7 @@ body {
 .manual-spin-button button:hover {
     transform: scale(1.05);
     /* Phóng to nhẹ khi hover */
-    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0px 6px 10px rgba(255, 215, 0, 0.4);
     /* Tăng bóng khi hover */
 }
 
