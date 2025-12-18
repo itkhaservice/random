@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
             { name: "Giải nhất", count: 1 },
             { name: "Giải nhì", count: 3 },
             { name: "Giải ba", count: 5 },
-            { name: "Giải khuyến khích", count: 10 },
+            { name: "Giải KK", count: 10 },
             { name: "Giải phụ", count: 20 }
         ];
         

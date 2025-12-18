@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Giải nhất": "two",
       "Giải nhì": "three",
       "Giải ba": "four",
-      "Giải khuyến khích": "five",
+      "Giải KK": "five",
     };
     const prizeCode = prizeMapping[selectedPrize];
     let resultItem = document.querySelector(`#result-${prizeCode}`);
