@@ -68,21 +68,74 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: 'heart', label: 'Nổ hình trái tim', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path></svg>' }
   ];
 
-  function renderFireworkStyleCards(selectedId) {
-    fireworkStyleCardsContainer.innerHTML = '';
-    fireworkStyles.forEach(style => {
-      const card = document.createElement('div');
-      card.className = `firework-card ${style.id === selectedId ? 'selected' : ''}`;
-      card.innerHTML = `
-        <div class="preview-icon">${style.icon}</div>
-        <div class="card-label">${style.label}</div>
-      `;
-      card.addEventListener('click', () => {
-        document.querySelectorAll('.firework-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        currentFireworkStyle = style.id;
-      });
-      fireworkStyleCardsContainer.appendChild(card);
+  let digitCount = 3;
+  let minSpinValue = 0;
+  let maxSpinValue = 999;
+  let allowDuplicates = false;
+
+  const digitCountInput = document.getElementById('digit-count-input');
+  const minValueInput = document.getElementById('min-value-input');
+  const maxValueInput = document.getElementById('max-value-input');
+  const allowDuplicateCheckbox = document.getElementById('allow-duplicate-checkbox');
+  const saveSpinConfigButton = document.getElementById('save-spin-config-button');
+  const resetSpinConfigButton = document.getElementById('reset-spin-config-button');
+  const resetPrizesButton = document.getElementById('reset-prizes-button');
+  const numberDisplayContainer = document.querySelector('.number-display');
+
+  function renderNumberDisplay() {
+    if (!numberDisplayContainer) return;
+    numberDisplayContainer.innerHTML = '';
+    for (let i = 1; i <= digitCount; i++) {
+        const numDiv = document.createElement('div');
+        numDiv.className = 'number';
+        numDiv.id = `number${i}`;
+        numDiv.textContent = '0';
+        numberDisplayContainer.appendChild(numDiv);
+    }
+  }
+
+  if (saveSpinConfigButton) {
+    saveSpinConfigButton.addEventListener('click', () => {
+        digitCount = parseInt(digitCountInput.value) || 3;
+        minSpinValue = parseInt(minValueInput.value) || 0;
+        maxSpinValue = parseInt(maxValueInput.value) || 999;
+        allowDuplicates = allowDuplicateCheckbox.checked;
+
+        renderNumberDisplay();
+        
+        const spinConfig = { digitCount, minSpinValue, maxSpinValue, allowDuplicates };
+        ipcRenderer.invoke('save-setting', 'spinConfig', spinConfig).then(() => {
+            showNotification("Đã lưu cấu hình quay số thành công!");
+        });
+    });
+  }
+
+  if (resetSpinConfigButton) {
+    resetSpinConfigButton.addEventListener('click', () => {
+        digitCountInput.value = 3;
+        minValueInput.value = 0;
+        maxValueInput.value = 999;
+        allowDuplicateCheckbox.checked = false;
+        showNotification("Đã điền thông số mặc định. Nhấn Lưu để áp dụng!");
+    });
+  }
+
+  if (resetPrizesButton) {
+    resetPrizesButton.addEventListener('click', () => {
+        const defaultPrizes = [
+            { name: "Giải đặc biệt", count: 1 },
+            { name: "Giải nhất", count: 1 },
+            { name: "Giải nhì", count: 3 },
+            { name: "Giải ba", count: 5 },
+            { name: "Giải khuyến khích", count: 10 },
+            { name: "Giải phụ", count: 20 }
+        ];
+        
+        prizeListEditor.innerHTML = "";
+        defaultPrizes.forEach(p => {
+            prizeListEditor.appendChild(createPrizeEntry(p.name, p.count));
+        });
+        showNotification("Đã đặt lại danh sách giải thưởng mặc định. Nhấn Lưu để áp dụng!");
     });
   }
 
@@ -118,23 +171,31 @@ document.addEventListener("DOMContentLoaded", () => {
       prizeStatus[prize] = { spinsLeft: count, isCompleted: false };
     }
     selectedPrize = prize;
-    spinsLeft = prizeStatus[prize].spinsLeft;
-    priceElement.textContent = `Đã chọn: ${prize}. Số lần quay: ${spinsLeft}`;
+    updatePrizeUI();
   }
 
   function resetState() {
     prizeStatus = {};
     selectedPrize = null;
-    spinsLeft = 0;
     resultList.innerHTML = "";
     priceElement.textContent = "Vui lòng chọn giải thưởng để bắt đầu!";
+    // Reset buttons text
+    document.querySelectorAll(".spin-small").forEach(btn => {
+        btn.textContent = btn.dataset.prize;
+    });
   }
 
   function bindPrizeButtonEvents() {
     document.querySelectorAll(".spin-small").forEach((button) => {
+      const prize = button.getAttribute("data-prize");
+      const count = parseInt(button.getAttribute("data-count"), 10);
+      
+      // Khởi tạo hiển thị số lượt trên nút nếu đã có dữ liệu lưu trữ
+      if (prizeStatus[prize]) {
+          button.textContent = `${prize} (${prizeStatus[prize].spinsLeft})`;
+      }
+
       button.addEventListener("click", () => {
-        const prize = button.getAttribute("data-prize");
-        const count = parseInt(button.getAttribute("data-count"), 10);
         audioPlayer1.play();
         if (prizeStatus[prize]?.isCompleted) {
           showNotification(`${prize} đã hoàn tất quay. Vui lòng chọn giải khác!`);
@@ -153,12 +214,9 @@ document.addEventListener("DOMContentLoaded", () => {
       showNotification("Vui lòng chọn một giải trước khi bấm quay!");
       return false;
     }
-    if (prizeStatus[selectedPrize]?.isCompleted) {
+    const currentStatus = prizeStatus[selectedPrize];
+    if (currentStatus?.isCompleted || currentStatus?.spinsLeft <= 0) {
       showNotification(`${selectedPrize} đã hoàn tất quay. Vui lòng chọn giải khác!`);
-      return false;
-    }
-    if (spinsLeft <= 0) {
-      showNotification(`Số lần quay cho ${selectedPrize} đã hết. Vui lòng chọn giải khác!`);
       return false;
     }
     return true;
@@ -197,71 +255,76 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function displayLuckyNumber() {
-    const luckyNumber = String(Math.floor(Math.random() * 491)).padStart(3, "0");
-    changeBackgroundColorWhite(number1);
-    changeBackgroundColorWhite(number2);
-    changeBackgroundColorWhite(number3);
-    const [digit1, digit2, digit3] = luckyNumber;
+    let luckyNumber;
+    let attempts = 0;
+    const maxAttempts = 1000;
 
-    let interval = animateNumbers(0);
+    // Lấy danh sách các số đã trúng
+    const existingNumbers = Array.from(document.querySelectorAll('#result-list li'))
+        .map(li => li.textContent.split(': ')[1])
+        .filter(n => n !== undefined);
+
+    do {
+        luckyNumber = Math.floor(Math.random() * (maxSpinValue - minSpinValue + 1)) + minSpinValue;
+        attempts++;
+        // Kiểm tra trùng lặp nếu không cho phép
+        if (allowDuplicates) break; 
+        if (!existingNumbers.includes(luckyNumber.toString().padStart(digitCount, '0'))) break;
+    } while (attempts < maxAttempts);
+
+    const luckyString = luckyNumber.toString().padStart(digitCount, '0');
+    
+    // Cập nhật hiển thị các ô số
+    for (let i = 0; i < digitCount; i++) {
+        const el = document.getElementById(`number${i + 1}`);
+        if (el) el.textContent = luckyString[i];
+    }
 
     setTimeout(() => {
-      manualSpinButton.disabled = true;
-      manualSpinButton.style.backgroundColor = "#ccc";
-      manualSpinButton.style.cursor = "not-allowed";
-
-      clearInterval(interval);
-      number1.textContent = digit1;
-      audioPlayer1.play();
-      changeBackgroundColor(number1);
-      interval = animateNumbers(1);
-
-      setTimeout(() => {
-        clearInterval(interval);
-        number2.textContent = digit2;
-        audioPlayer1.play();
-        changeBackgroundColor(number2);
-        interval = animateNumbers(2);
+        const luckyDisplay = document.getElementById("lucky-number-display");
+        luckyDisplay.textContent = luckyString;
+        congratulationsModal.style.display = "block";
+        if (fireworksEnabled) fireworks = []; 
 
         setTimeout(() => {
-          clearInterval(interval);
-          number3.textContent = digit3;
-          changeBackgroundColor(number3);
-          audioPlayer1.play();
-
-          let resultItem = Array.from(resultList.children).find(li => li.dataset.prize === selectedPrize);
-          if (!resultItem) {
-            resultItem = document.createElement("li");
-            resultItem.dataset.prize = selectedPrize;
-            resultItem.innerHTML = `<strong>${selectedPrize}: </strong><span class="lucky-numbers" style="color: #FFD700;"></span>`;
-            resultList.appendChild(resultItem);
-          }
-          const luckyNumbersSpan = resultItem.querySelector(".lucky-numbers");
-          luckyNumbersSpan.textContent += luckyNumbersSpan.textContent ? `, ${luckyNumber}` : luckyNumber;
-          
-          disableEnterKey();
-          setTimeout(() => {
-            showCongratulationsMessage(luckyNumber);
-            playAudio();
-            setTimeout(enableEnterKey, 5000);
-          }, 1000);
-
-          manualSpinButton.disabled = false;
-          manualSpinButton.style.backgroundColor = "yellow";
-          manualSpinButton.style.cursor = "pointer";
-
-          spinsLeft--;
-          prizeStatus[selectedPrize].spinsLeft = spinsLeft;
-
-          if (spinsLeft === 0) {
-            prizeStatus[selectedPrize].isCompleted = true;
-            priceElement.textContent = `${selectedPrize} đã hoàn tất quay số!`;
-          } else {
-            priceElement.textContent = `Đã chọn: ${selectedPrize}. Còn lại: ${spinsLeft}`;
-          }
-        }, 1000);
-      }, 1000);
+            congratulationsModal.style.display = "none";
+            addResultToList(luckyString);
+        }, 5000);
     }, 1000);
+  }
+
+  function addResultToList(number, prizeName, shouldSave = true) {
+    const li = document.createElement("li");
+    const displayPrize = prizeName || selectedPrize || "Giải thưởng";
+    li.textContent = `${displayPrize}: ${number}`;
+    resultList.appendChild(li);
+    
+    if (shouldSave) {
+        // Lưu kết quả vào file settings thông qua IPC
+        ipcRenderer.invoke('get-setting', 'results').then(results => {
+            const newResults = results || [];
+            newResults.push({ number, prize: displayPrize, timestamp: new Date().getTime() });
+            ipcRenderer.invoke('save-setting', 'results', newResults);
+        });
+    }
+  }
+
+  function renderFireworkStyleCards(selectedId) {
+    fireworkStyleCardsContainer.innerHTML = '';
+    fireworkStyles.forEach(style => {
+      const card = document.createElement('div');
+      card.className = `firework-card ${style.id === selectedId ? 'selected' : ''}`;
+      card.innerHTML = `
+        <div class="preview-icon">${style.icon}</div>
+        <div class="card-label">${style.label}</div>
+      `;
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.firework-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        currentFireworkStyle = style.id;
+      });
+      fireworkStyleCardsContainer.appendChild(card);
+    });
   }
 
   function handleSpinToggle() {
@@ -270,16 +333,101 @@ document.addEventListener("DOMContentLoaded", () => {
       isSpinning = true;
       manualSpinButton.textContent = "Dừng";
       spinningInterval = setInterval(() => {
-        number1.textContent = Math.floor(Math.random() * 10);
-        number2.textContent = Math.floor(Math.random() * 10);
-        number3.textContent = Math.floor(Math.random() * 10);
+        for (let i = 1; i <= digitCount; i++) {
+            const el = document.getElementById(`number${i}`);
+            if (el) el.textContent = Math.floor(Math.random() * 10);
+        }
       }, 50);
     } else {
       isSpinning = false;
       manualSpinButton.textContent = "Quay";
       clearInterval(spinningInterval);
-      displayLuckyNumber();
+      
+      // Hiệu ứng dừng từng ô số từ trái sang phải
+      stopDigitsSequentially();
     }
+  }
+
+  function stopDigitsSequentially() {
+    let luckyNumber;
+    let attempts = 0;
+    const maxAttempts = 1000;
+    const existingNumbers = Array.from(document.querySelectorAll('#result-list li'))
+        .map(li => li.textContent.split(': ')[1])
+        .filter(n => n !== undefined);
+
+    do {
+        luckyNumber = Math.floor(Math.random() * (maxSpinValue - minSpinValue + 1)) + minSpinValue;
+        attempts++;
+        if (allowDuplicates) break; 
+        if (!existingNumbers.includes(luckyNumber.toString().padStart(digitCount, '0'))) break;
+    } while (attempts < maxAttempts);
+
+    const luckyString = luckyNumber.toString().padStart(digitCount, '0');
+
+    // Chạy hiệu ứng quay giả cho từng ô rồi dừng lại
+    for (let i = 0; i < digitCount; i++) {
+        let tempInterval = setInterval(() => {
+            const el = document.getElementById(`number${i + 1}`);
+            if (el) el.textContent = Math.floor(Math.random() * 10);
+        }, 50);
+
+        setTimeout(() => {
+            clearInterval(tempInterval);
+            const el = document.getElementById(`number${i + 1}`);
+            if (el) el.textContent = luckyString[i];
+            
+            // Nếu là ô cuối cùng, hiển thị thông báo chúc mừng
+            if (i === digitCount - 1) {
+                finalizeSpin(luckyString);
+            }
+        }, (i + 1) * 800); // Mỗi ô dừng cách nhau 800ms
+    }
+  }
+
+  function finalizeSpin(luckyString) {
+    setTimeout(() => {
+        const luckyDisplay = document.getElementById("lucky-number-display");
+        luckyDisplay.textContent = luckyString;
+        congratulationsModal.style.display = "block";
+        if (fireworksEnabled) fireworks = []; 
+
+        setTimeout(() => {
+            congratulationsModal.style.display = "none";
+            addResultToList(luckyString, selectedPrize, true);
+            
+            // Cập nhật số lượt còn lại cho giải thưởng hiện tại
+            if (selectedPrize && prizeStatus[selectedPrize]) {
+                prizeStatus[selectedPrize].spinsLeft--;
+                if (prizeStatus[selectedPrize].spinsLeft <= 0) {
+                    prizeStatus[selectedPrize].isCompleted = true;
+                }
+                updatePrizeUI();
+                savePrizeStatus();
+            }
+        }, 5000);
+    }, 500);
+  }
+
+  function updatePrizeUI() {
+    const priceElement = document.querySelector(".price");
+    if (selectedPrize && prizeStatus[selectedPrize]) {
+        const status = prizeStatus[selectedPrize];
+        priceElement.textContent = status.isCompleted 
+            ? `${selectedPrize} đã hoàn tất!` 
+            : `Đang quay: ${selectedPrize} (Còn lại: ${status.spinsLeft})`;
+        
+        // Cập nhật text trên button giải thưởng
+        document.querySelectorAll('.spin-small').forEach(btn => {
+            if (btn.dataset.prize === selectedPrize) {
+                btn.textContent = `${selectedPrize} (${status.spinsLeft})`;
+            }
+        });
+    }
+  }
+
+  function savePrizeStatus() {
+    ipcRenderer.invoke('save-setting', 'prizeStatus', prizeStatus);
   }
 
   // =================================================================
@@ -314,6 +462,21 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
             renderFireworkStyleCards('classic');
             currentFireworkStyle = 'classic';
+        }
+    });
+
+    // Populate spin settings
+    ipcRenderer.invoke('get-setting', 'spinConfig').then(config => {
+        if (config) {
+            digitCount = config.digitCount || 3;
+            minSpinValue = config.minSpinValue || 0;
+            maxSpinValue = config.maxSpinValue || 999;
+            allowDuplicates = config.allowDuplicates || false;
+
+            digitCountInput.value = digitCount;
+            minValueInput.value = minSpinValue;
+            maxValueInput.value = maxSpinValue;
+            allowDuplicateCheckbox.checked = allowDuplicates;
         }
     });
     
@@ -367,7 +530,6 @@ document.addEventListener("DOMContentLoaded", () => {
     resetState();
     bindPrizeButtonEvents();
     showNotification("Đã lưu cài đặt giải thưởng!");
-    settingsModal.classList.add("hidden");
   });
 
   // --- General Settings Logic ---
@@ -394,7 +556,6 @@ document.addEventListener("DOMContentLoaded", () => {
     logoFileInput.value = "";
     infoImageInput.value = "";
     backgroundImageInput.value = "";
-    settingsModal.classList.add("hidden");
   });
 
   showInfoModalButton.addEventListener("click", () => {
@@ -424,7 +585,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
     ipcRenderer.send('update-effects-settings', newEffectsSettings);
-    settingsModal.classList.add("hidden");
   });
 
   // =================================================================
@@ -514,6 +674,29 @@ document.addEventListener("DOMContentLoaded", () => {
             flowerAnimations.dao?.start();
         }
     }
+
+    // Spin Config
+    if (data.spinConfig) {
+        digitCount = data.spinConfig.digitCount || 3;
+        minSpinValue = data.spinConfig.minSpinValue || 0;
+        maxSpinValue = data.spinConfig.maxSpinValue || 999;
+        allowDuplicates = data.spinConfig.allowDuplicates || false;
+    }
+    
+    // Prize Status & Results
+    if (data.prizeStatus) {
+        prizeStatus = data.prizeStatus;
+    }
+    
+    if (data.results) {
+        data.results.forEach(res => {
+            // Hiển thị lại danh sách kết quả (giả sử có hàm addResultToList)
+            addResultToList(res.number, res.prize, false); 
+        });
+    }
+
+    renderNumberDisplay();
+    bindPrizeButtonEvents(); // Gọi lại để cập nhật text nút bấm
   });
 
   // =================================================================

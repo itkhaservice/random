@@ -107,6 +107,9 @@
             <li data-tab="sound">
               <a href="#">Âm thanh</a>
             </li>
+            <li data-tab="layout">
+              <a href="#">Quay số</a>
+            </li>
             <li data-tab="effects">
               <a href="#">Hiệu ứng</a>
             </li>
@@ -149,10 +152,13 @@
             <div id="prize-list-editor">
               <!-- Prize entries will be dynamically inserted here -->
             </div>
-            <button id="add-prize-button" class="settings-button">Thêm giải thưởng</button>
-            <button id="save-prizes-button" class="settings-button save">Lưu giải thưởng</button>
+            <div class="settings-action-group" style="display: flex; gap: 10px;">
+              <button id="add-prize-button" class="settings-button" style="flex: 1;">Thêm giải thưởng</button>
+              <button id="reset-prizes-button" class="settings-button cancel" style="flex: 1;">Đặt lại mặc định</button>
+            </div>
+            <button id="save-prizes-button" class="settings-button save" style="width: 100%; margin-top: 10px;">Lưu giải thưởng</button>
           </div>
-          
+
           <!-- Sound Settings -->
           <div id="sound-settings" class="settings-tab">
             <h3>Cài đặt âm thanh</h3>
@@ -163,6 +169,38 @@
              <div class="setting-entry">
                 <label>Đổi nhạc nền</label>
                 <button id="change-music-button" class="settings-button">Chọn tệp nhạc</button>
+            </div>
+          </div>
+
+          <!-- Spin Settings -->
+          <div id="layout-settings" class="settings-tab">
+            <h3>Cấu hình thông số quay</h3>
+            <div id="spin-config-editor">
+              <div class="setting-entry">
+                <label for="digit-count-input">Số lượng chữ số (1-4)</label>
+                <input type="number" id="digit-count-input" min="1" max="4" value="3">
+              </div>
+              <div class="setting-row" style="display: flex; gap: 20px;">
+                <div class="setting-entry" style="flex: 1;">
+                    <label for="min-value-input">Giá trị nhỏ nhất</label>
+                    <input type="number" id="min-value-input" min="0" value="0">
+                </div>
+                <div class="setting-entry" style="flex: 1;">
+                    <label for="max-value-input">Giá trị lớn nhất</label>
+                    <input type="number" id="max-value-input" min="1" value="999">
+                </div>
+              </div>
+              <div class="setting-entry-row" style="margin-top: 15px;">
+                <label for="allow-duplicate-checkbox">Cho phép trùng số đã trúng</label>
+                <label class="switch">
+                  <input type="checkbox" id="allow-duplicate-checkbox">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+            </div>
+            <div class="settings-action-group" style="display: flex; gap: 10px; margin-top: 15px;">
+              <button id="save-spin-config-button" class="settings-button save" style="flex: 2;">Lưu cấu hình</button>
+              <button id="reset-spin-config-button" class="settings-button cancel" style="flex: 1;">Đặt lại</button>
             </div>
           </div>
 
