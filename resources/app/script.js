@@ -261,53 +261,119 @@ document.addEventListener("DOMContentLoaded", () => {
 
   manualSpinButton.addEventListener("click", handleSpinToggle);
 
-  // --- IPC LISTENERS ---
+const { pathToFileURL } = require("url");
 
-  // Listener for toggling sound
-  ipcRenderer.on("toggle-sound", (event, { muted }) => {
-    console.log(`[IPC] Received 'toggle-sound' with muted: ${muted}`);
-    const audioPlayer2 = document.getElementById("audio-player2");
-    if (!audioPlayer2) {
-      console.error("[Audio] Player 'audio-player2' not found!");
-      return;
-    }
+// =====================
+// STATE
+// =====================
+let pendingMusicPath = null;
+let isMuted = true;
 
-    if (muted) {
-      audioPlayer2.pause();
-      console.log("[Audio] Paused.");
-    } else {
-      const playPromise = audioPlayer2.play();
-      if (playPromise !== undefined) {
-        playPromise.then(_ => {
-          console.log("[Audio] Playback started successfully.");
-        }).catch(error => {
-          console.error("[Audio] Playback failed:", error);
-        });
-      }
-    }
-  });
+// =====================
+// HELPERS
+// =====================
+function getAudio() {
+  return document.getElementById("audio-player2");
+}
 
-  // Listener for music updated from menu
-  ipcRenderer.on("music-updated", (event, { musicPath }) => {
-    console.log(`[IPC] Received 'music-updated'. New music path: ${musicPath}`);
-    const audioPlayer2 = document.getElementById("audio-player2");
-    if (audioPlayer2) {
-      audioPlayer2.src = musicPath; // Cập nhật đường dẫn nhạc
-      audioPlayer2.load(); // Tải nhạc mới
-      audioPlayer2.play(); // Phát nhạc
-    }
-  });
+function toFileUrl(filePath) {
+  if (!filePath) return null;
+  return pathToFileURL(filePath).href;
+}
 
-  // Listener for initial music path on app start
-  ipcRenderer.on("initial-music-path", (event, { musicPath }) => {
-    console.log(`[IPC] Received 'initial-music-path'. Setting initial music: ${musicPath}`);
-    const audioPlayer2 = document.getElementById("audio-player2");
-    if (audioPlayer2) {
-      audioPlayer2.src = musicPath;
-      audioPlayer2.load(); // Cần tải để cập nhật src
-      // Playback is controlled by the 'toggle-sound' event
-    }
-  });
+// =====================
+// AUDIO – TOGGLE SOUND
+// =====================
+ipcRenderer.on("toggle-sound", (event, { muted }) => {
+  console.log(`[AUDIO] IPC 'toggle-sound' received. Muted: ${muted}`);
+  isMuted = muted;
+
+  const audio = getAudio();
+  if (!audio) {
+    console.error("[AUDIO] Player 'audio-player2' not found!");
+    return;
+  }
+
+  if (isMuted) {
+    audio.pause();
+    console.log("[AUDIO] Playback paused due to mute.");
+    return;
+  }
+
+  // If unmuting, check for pending music first
+  if (pendingMusicPath) {
+    console.log(`[AUDIO] Playing pending music: ${pendingMusicPath}`);
+    audio.src = pendingMusicPath;
+    pendingMusicPath = null; // Clear pending path
+  } else if (!audio.src) {
+    console.log("[AUDIO] No music source set. Cannot play.");
+    return;
+  }
+  
+  audio.load(); // Reload the source
+  audio.play()
+    .then(() => console.log("[AUDIO] Playback started."))
+    .catch(err => console.error("[AUDIO] Playback failed after toggle.", err));
+});
+
+// =====================
+// AUDIO – MUSIC UPDATED
+// =====================
+ipcRenderer.on("music-updated", (event, { musicPath, isMuted: mutedFromMain }) => {
+  console.log(`[AUDIO] IPC 'music-updated' received. Path: ${musicPath}, Muted: ${mutedFromMain}`);
+  isMuted = mutedFromMain;
+  
+  if (!musicPath) {
+    console.error("[AUDIO] 'music-updated' received no music path.");
+    return;
+  }
+
+  const audio = getAudio();
+  if (!audio) {
+    console.error("[AUDIO] Player 'audio-player2' not found!");
+    return;
+  }
+  
+  // Nối thêm timestamp để phá bộ nhớ đệm (cache busting)
+  const fileUrl = toFileUrl(musicPath) + `?t=${Date.now()}`;
+  console.log(`[AUDIO] Converted path to cache-busting URL: ${fileUrl}`);
+
+  if (isMuted) {
+    pendingMusicPath = fileUrl;
+    audio.src = fileUrl; // Set src so it's ready when unmuted
+    console.log("[AUDIO] Muted. New music is queued and pre-loaded.");
+  } else {
+    pendingMusicPath = null; // Clear any pending path
+    audio.src = fileUrl;
+    audio.load();
+    audio.play()
+      .then(() => console.log("[AUDIO] New music started playing."))
+      .catch(err => {
+        console.error("[AUDIO] Failed to play new music.", err);
+      });
+  }
+});
+
+// =====================
+// AUDIO – INITIAL MUSIC
+// =====================
+ipcRenderer.on("initial-music-path", (event, { musicPath }) => {
+  console.log(`[AUDIO] IPC 'initial-music-path' received. Path: ${musicPath}`);
+  const audio = getAudio();
+  if (!audio) {
+    console.error("[AUDIO] Player 'audio-player2' not found!");
+    return;
+  }
+  
+  const fileUrl = toFileUrl(musicPath);
+  if (fileUrl) {
+    audio.src = fileUrl;
+    audio.load();
+    console.log("[AUDIO] Initial music loaded. Playback will depend on 'toggle-sound' state.");
+  } else {
+    console.error("[AUDIO] No initial music path provided.");
+  }
+});
 
   // Listener for changing background
   ipcRenderer.on("set-background", (event, filePath) => {

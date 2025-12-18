@@ -121,7 +121,10 @@ app.on("ready", () => {
   });
 
   mainWindow.loadURL(`file://${path.join(app.getAppPath(), 'RANDOM.html')}`);
-  mainWindow.webContents.openDevTools(); // Mở DevTools để gỡ lỗi
+  // Mở DevTools để gỡ lỗi nếu không phải là bản build
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools();
+  }
 
   // Send initial music path, sound state, and branding to renderer
   mainWindow.webContents.on('did-finish-load', () => {
@@ -179,6 +182,7 @@ app.on("ready", () => {
 
                 mainWindow.webContents.send("music-updated", {
                   musicPath: settings.customMusicPath,
+                  isMuted: settings.isMuted, // Gửi trạng thái muted hiện tại
                 }); // Gửi đường dẫn mới về renderer
 
                 dialog.showMessageBox(mainWindow, {
