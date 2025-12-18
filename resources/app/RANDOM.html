@@ -92,47 +92,85 @@
         <ul id="result-list"></ul>
       </div>
     </div>
+    <div id="settings-modal" class="modal hidden">
+      <div class="settings-container">
+        <!-- Sidebar -->
+        <div class="settings-sidebar">
+          <h2 style="text-align: center; color: #fff; margin-bottom: 20px;">Cài đặt</h2>
+          <ul>
+            <li class="active" data-tab="general">
+              <a href="#">Chung</a>
+            </li>
+            <li data-tab="prizes">
+              <a href="#">Giải thưởng</a>
+            </li>
+            <li data-tab="sound">
+              <a href="#">Âm thanh</a>
+            </li>
+          </ul>
+           <div class="modal-actions" style="text-align: center; margin-top: 20px; position: absolute; bottom: 20px; width: 100%;">
+              <button id="close-settings-button" class="settings-button cancel">Đóng</button>
+          </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="settings-content">
+          <!-- General Settings -->
+          <div id="general-settings" class="settings-tab active">
+            <h3>Tùy chỉnh chung</h3>
+            <div id="branding-editor">
+              <div class="setting-entry">
+                <label for="company-name-input">Tên công ty</label>
+                <input type="text" id="company-name-input" placeholder="Nhập tên công ty">
+              </div>
+              <div class="setting-entry">
+                <label for="logo-file-input">Tệp logo (dùng cho logo và favicon)</label>
+                <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/gif">
+              </div>
+               <div class="setting-entry">
+                <label for="info-image-input">Ảnh giới thiệu (GIF, JPG, PNG)</label>
+                <input type="file" id="info-image-input" accept="image/gif, image/jpeg, image/png">
+              </div>
+               <div class="setting-entry">
+                <label for="background-image-input">Ảnh nền</label>
+                <input type="file" id="background-image-input" accept="image/jpeg, image/png, image/gif">
+              </div>
+            </div>
+            <button id="save-branding-button" class="settings-button save">Lưu thay đổi</button>
+            <button id="show-info-modal-button" class="settings-button">Hiển thị lại ảnh giới thiệu</button>
+          </div>
+          
+          <!-- Prize Settings -->
+          <div id="prizes-settings" class="settings-tab">
+            <h3>Cài đặt giải thưởng</h3>
+            <div id="prize-list-editor">
+              <!-- Prize entries will be dynamically inserted here -->
+            </div>
+            <button id="add-prize-button" class="settings-button">Thêm giải thưởng</button>
+            <button id="save-prizes-button" class="settings-button save">Lưu giải thưởng</button>
+          </div>
+          
+          <!-- Sound Settings -->
+          <div id="sound-settings" class="settings-tab">
+            <h3>Cài đặt âm thanh</h3>
+            <div class="setting-entry">
+                <label>Âm thanh nền</label>
+                <button id="toggle-sound-button" class="settings-button">Tắt âm thanh</button>
+            </div>
+             <div class="setting-entry">
+                <label>Đổi nhạc nền</label>
+                <button id="change-music-button" class="settings-button">Chọn tệp nhạc</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal -->
     <div id="notification-modal" class="modal hidden">
       <div class="modal-content">
         <p id="modal-message"></p>
         <button id="close-modal">OK</button>
-      </div>
-    </div>
-
-    <!-- Prize Settings Modal -->
-    <div id="prize-settings-modal" class="modal hidden">
-      <div class="modal-content" style="max-width: 600px;">
-        <h2 style="text-align: center; color: #333;">Cài đặt giải thưởng</h2>
-        <div id="prize-list-editor">
-          <!-- Prize entries will be dynamically inserted here -->
-        </div>
-        <button id="add-prize-button" class="settings-button">Thêm giải thưởng</button>
-        <div class="modal-actions" style="text-align: center; margin-top: 20px;">
-          <button id="save-prizes-button" class="settings-button save">Lưu thay đổi</button>
-          <button id="cancel-prizes-button" class="settings-button cancel">Hủy</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Branding Settings Modal -->
-    <div id="branding-settings-modal" class="modal hidden">
-      <div class="modal-content" style="max-width: 600px;">
-        <h2 style="text-align: center; color: #333;">Tùy chỉnh thương hiệu</h2>
-        <div id="branding-editor">
-          <div class="setting-entry">
-            <label for="company-name-input">Tên công ty</label>
-            <input type="text" id="company-name-input" placeholder="Nhập tên công ty">
-          </div>
-          <div class="setting-entry">
-            <label for="logo-file-input">Tệp logo</label>
-            <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/gif">
-          </div>
-        </div>
-        <div class="modal-actions" style="text-align: center; margin-top: 20px;">
-          <button id="save-branding-button" class="settings-button save">Lưu thay đổi</button>
-          <button id="cancel-branding-button" class="settings-button cancel">Hủy</button>
-        </div>
       </div>
     </div>
 
