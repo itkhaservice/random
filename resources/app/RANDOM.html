@@ -170,13 +170,28 @@
             <div class="tab-body">
               <h3>Cài đặt âm thanh</h3>
               <div class="setting-entry">
-                  <label>Âm thanh nền</label>
-                  <button id="toggle-sound-button" class="settings-button">Tắt âm thanh</button>
+                  <label>Âm thanh nền (Nhạc nền lặp lại)</label>
+                  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <button id="toggle-sound-button" class="settings-button" style="flex: 1;">Tắt âm thanh</button>
+                    <button id="change-music-button" class="settings-button info-btn" style="flex: 1;">Chọn tệp nhạc</button>
+                  </div>
+                  <div class="setting-entry">
+                    <label for="bg-volume-slider">Âm lượng nhạc nền: <span id="bg-volume-value">100</span>%</label>
+                    <input type="range" id="bg-volume-slider" min="0" max="100" step="1" value="100" class="long-slider">
+                  </div>
               </div>
-               <div class="setting-entry">
-                  <label>Đổi nhạc nền</label>
-                  <button id="change-music-button" class="settings-button">Chọn tệp nhạc</button>
+              <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+              <div class="setting-entry">
+                  <label>Âm thanh khi quay/ra số (number.mp3)</label>
+                  <input type="file" id="spin-sound-input" accept="audio/mp3, audio/wav" class="custom-file-input">
               </div>
+              <div class="setting-entry">
+                  <label>Âm thanh chúc mừng trúng thưởng (lucky-number.mp3)</label>
+                  <input type="file" id="congrat-sound-input" accept="audio/mp3, audio/wav" class="custom-file-input">
+              </div>
+            </div>
+            <div class="tab-footer">
+              <button id="save-sounds-button" class="settings-button save">Lưu âm thanh</button>
             </div>
           </div>
 

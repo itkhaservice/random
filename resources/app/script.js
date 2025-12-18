@@ -51,6 +51,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const savePrizesButton = document.getElementById("save-prizes-button");
   const toggleSoundButton = document.getElementById("toggle-sound-button");
   const changeMusicButton = document.getElementById("change-music-button");
+  const spinSoundInput = document.getElementById("spin-sound-input");
+  const congratSoundInput = document.getElementById("congrat-sound-input");
+  const saveSoundsButton = document.getElementById("save-sounds-button");
+  const bgVolumeSlider = document.getElementById("bg-volume-slider");
+  const bgVolumeValue = document.getElementById("bg-volume-value");
+
+  let currentBgVolume = 1;
+
+  if (bgVolumeSlider) {
+    bgVolumeSlider.addEventListener("input", (e) => {
+      const val = e.target.value;
+      bgVolumeValue.textContent = val;
+      currentBgVolume = val / 100;
+      audioPlayer2.volume = currentBgVolume;
+    });
+  }
 
   // Effects Settings Elements
   const toggleFlowersCheckbox = document.getElementById('toggle-flowers-checkbox');
@@ -341,6 +357,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isSpinning) {
       isSpinning = true;
       manualSpinButton.textContent = "Dừng";
+      
+      // Phát âm thanh khi bắt đầu quay
+      audioPlayer1.currentTime = 0;
+      audioPlayer1.play().catch(e => console.log("Play failed"));
+
       // Xóa các hiệu ứng cũ và bắt đầu nhịp chạy đồng bộ mới
       numberDisplayContainer.classList.remove('sync-spin');
       void numberDisplayContainer.offsetWidth; // Trigger reflow
@@ -361,6 +382,10 @@ document.addEventListener("DOMContentLoaded", () => {
       manualSpinButton.textContent = "Quay";
       clearInterval(spinningInterval);
       
+      // Phát âm thanh ngay khi nhấn Dừng
+      audioPlayer1.currentTime = 0;
+      audioPlayer1.play().catch(e => console.log("Play failed"));
+
       // Hiệu ứng dừng từng ô số từ trái sang phải
       stopDigitsSequentially();
     }
@@ -399,6 +424,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const el = document.getElementById(`number${i + 1}`);
             if (el) {
                 el.textContent = luckyString[i];
+                // Phát âm thanh khi một ô số dừng lại
+                audioPlayer1.currentTime = 0;
+                audioPlayer1.play().catch(e => console.log("Play failed"));
+
                 // Thêm hiệu ứng lấp lánh
                 el.classList.remove('glow', 'finalized');
                 void el.offsetWidth; // Trigger reflow
@@ -413,15 +442,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function fadeAudio(player, targetVolume, duration = 1000) {
+    const startVolume = player.volume;
+    const steps = 20;
+    const volumeStep = (targetVolume - startVolume) / steps;
+    const stepDuration = duration / steps;
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+      currentStep++;
+      player.volume = Math.max(0, Math.min(1, startVolume + (volumeStep * currentStep)));
+      if (currentStep >= steps) {
+        clearInterval(interval);
+        // Không pause nếu volume > 0
+      }
+    }, stepDuration);
+  }
+
   function finalizeSpin(luckyString) {
     setTimeout(() => {
         const luckyDisplay = document.getElementById("lucky-number-display");
         luckyDisplay.textContent = luckyString;
         congratulationsModal.style.display = "flex"; // Sử dụng flex để căn giữa chuẩn
+        
+        // Nhỏ nhạc nền dần dần về 10% của âm lượng hiện tại
+        if (!isMuted) fadeAudio(audioPlayer2, currentBgVolume * 0.1, 500);
+
+        // Phát âm thanh chúc mừng trúng thưởng
+        audioPlayer.currentTime = 0;
+        audioPlayer.play().catch(e => console.log("Play failed"));
+
         if (fireworksEnabled) fireworks = []; 
 
         setTimeout(() => {
             congratulationsModal.style.display = "none";
+            
+            // To nhạc nền trở lại mức âm lượng hiện tại
+            if (!isMuted) {
+                audioPlayer2.play();
+                fadeAudio(audioPlayer2, currentBgVolume, 1000);
+            }
+
             addResultToList(luckyString, selectedPrize, true);
             
             // Cập nhật số lượt còn lại cho giải thưởng hiện tại
@@ -599,6 +660,25 @@ document.addEventListener("DOMContentLoaded", () => {
   toggleSoundButton.addEventListener("click", () => ipcRenderer.send('toggle-sound-from-renderer'));
   changeMusicButton.addEventListener("click", () => ipcRenderer.send('open-change-music-dialog'));
   
+  saveSoundsButton.addEventListener("click", () => {
+    const spinSoundFile = spinSoundInput.files[0];
+    const congratSoundFile = congratSoundInput.files[0];
+
+    // Lưu cấu hình âm lượng qua IPC
+    ipcRenderer.invoke('save-setting', 'bgMusicVolume', currentBgVolume);
+
+    if (spinSoundFile) {
+      ipcRenderer.send("update-sound-effect", { type: 'spin', path: spinSoundFile.path });
+    }
+    if (congratSoundFile) {
+      ipcRenderer.send("update-sound-effect", { type: 'congrat', path: congratSoundFile.path });
+    }
+    
+    spinSoundInput.value = "";
+    congratSoundInput.value = "";
+    showNotification("Đã lưu cài đặt âm thanh và âm lượng!");
+  });
+  
   // --- Effects Settings Logic ---
   flowerSpeedSlider.addEventListener('input', (e) => {
     flowerSpeedValue.textContent = e.target.value;
@@ -637,6 +717,17 @@ document.addEventListener("DOMContentLoaded", () => {
     audioPlayer2.src = url.href;
     if (!isMuted) audioPlayer2.play();
     showNotification("Đã thay đổi nhạc nền!");
+  });
+
+  ipcRenderer.on("sound-effect-updated", (event, { type, path }) => {
+    const url = new URL(path, 'file://');
+    url.searchParams.set('t', Date.now());
+    if (type === 'spin') {
+      audioPlayer1.src = url.href;
+    } else if (type === 'congrat') {
+      audioPlayer.src = url.href;
+    }
+    showNotification(`Đã cập nhật âm thanh ${type === 'spin' ? 'quay số' : 'chúc mừng'}!`);
   });
   
   ipcRenderer.on("set-background", (event, { backgroundUrl }) => {
@@ -688,10 +779,31 @@ document.addEventListener("DOMContentLoaded", () => {
     // Sound
     isMuted = data.isMuted;
     audioPlayer2.muted = isMuted;
+    
+    if (data.bgMusicVolume !== undefined) {
+        currentBgVolume = data.bgMusicVolume;
+        audioPlayer2.volume = currentBgVolume;
+        if (bgVolumeSlider) {
+            bgVolumeSlider.value = Math.round(currentBgVolume * 100);
+            bgVolumeValue.textContent = bgVolumeSlider.value;
+        }
+    }
+
     if (data.musicPath) {
       const url = new URL(data.musicPath, 'file://');
       audioPlayer2.src = url.href;
     }
+    
+    if (data.spinSoundPath) {
+      const url = new URL(data.spinSoundPath, 'file://');
+      audioPlayer1.src = url.href;
+    }
+    
+    if (data.congratSoundPath) {
+      const url = new URL(data.congratSoundPath, 'file://');
+      audioPlayer.src = url.href;
+    }
+
     if (!isMuted) audioPlayer2.play().catch(e => console.log("Initial play failed"));
     toggleSoundButton.textContent = isMuted ? "Bật âm thanh" : "Tắt âm thanh";
 

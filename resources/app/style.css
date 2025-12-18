@@ -99,47 +99,93 @@ button.spin-small:hover { background: #ffd700; color: #8b0000; }
 
 .manual-spin-button button {
 
-    background: radial-gradient(circle, #fff380 0%, #ffd700 50%, #b8860b 100%);
+    background: linear-gradient(135deg, #d40000 0%, #8b0000 100%);
 
-    color: #8b0000;
+    color: #ffd700;
 
-    font-size: 1.8rem;
+    font-size: 2rem;
 
     font-weight: 900;
 
     text-transform: uppercase;
 
-    letter-spacing: 2px;
+    letter-spacing: 4px;
 
-    border: 4px double #8b0000;
+    border: 4px double #ffd700;
 
-    border-radius: 50px;
+    border-radius: 60px;
 
-    padding: 15px 45px;
+    padding: 15px 60px;
 
-    box-shadow: 
-
-        0 6px 0 #5a0000, 
-
-        0 10px 20px rgba(0,0,0,0.4),
-
-        inset 0 0 15px rgba(255,255,255,0.5);
+    position: relative;
 
     cursor: pointer;
 
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s ease;
 
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+    box-shadow: 
 
-    display: flex;
+        0 0 20px rgba(212, 0, 0, 0.6),
 
-    align-items: center;
+        inset 0 0 15px rgba(255, 215, 0, 0.3);
 
-    justify-content: center;
-
-    min-width: 180px;
+    overflow: visible; /* Để hiện hoa văn tràn ra ngoài */
 
     outline: none;
+
+    font-family: 'Quicksand', sans-serif;
+
+}
+
+
+
+/* Hoa văn vân mây bên trái */
+
+.manual-spin-button button::before {
+
+    content: '☁'; /* Biểu tượng mây cách điệu hoặc dùng shape */
+
+    position: absolute;
+
+    left: -15px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    font-size: 40px;
+
+    color: #ffd700;
+
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+
+    opacity: 0.8;
+
+}
+
+
+
+/* Hoa văn vân mây bên phải */
+
+.manual-spin-button button::after {
+
+    content: '☁';
+
+    position: absolute;
+
+    right: -15px;
+
+    top: 50%;
+
+    transform: translateY(-50%) scaleX(-1);
+
+    font-size: 40px;
+
+    color: #ffd700;
+
+    text-shadow: -2px 2px 5px rgba(0,0,0,0.3);
+
+    opacity: 0.8;
 
 }
 
@@ -147,17 +193,25 @@ button.spin-small:hover { background: #ffd700; color: #8b0000; }
 
 .manual-spin-button button:hover {
 
-    transform: translateY(-3px) scale(1.05);
+    transform: scale(1.05);
 
-    box-shadow: 
+    background: linear-gradient(135deg, #ff0000 0%, #d40000 100%);
 
-        0 9px 0 #5a0000, 
+    box-shadow: 0 0 35px rgba(255, 215, 0, 0.5);
 
-        0 15px 25px rgba(0,0,0,0.5),
+    color: #fff;
 
-        inset 0 0 20px rgba(255,255,255,0.6);
+}
 
-    background: radial-gradient(circle, #fff9ae 0%, #ffd700 50%, #d4af37 100%);
+
+
+.manual-spin-button button:hover::before,
+
+.manual-spin-button button:hover::after {
+
+    opacity: 1;
+
+    filter: brightness(1.2);
 
 }
 
@@ -165,15 +219,11 @@ button.spin-small:hover { background: #ffd700; color: #8b0000; }
 
 .manual-spin-button button:active {
 
-    transform: translateY(4px);
-
-    box-shadow: 
-
-        0 2px 0 #5a0000, 
-
-        0 5px 10px rgba(0,0,0,0.4);
+    transform: scale(0.95);
 
 }
+
+
 
 
 

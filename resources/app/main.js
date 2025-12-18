@@ -22,14 +22,19 @@ const userInfoImageDir = path.join(app.getPath("userData"), "custom_info_images"
 const userBackgroundDir = path.join(app.getPath("userData"), "custom_background");
 
 const userCustomThemeMusicPath = path.join(userMusicDir, "theme.mp3");
+const userCustomSpinSoundPath = path.join(userMusicDir, "spin.mp3");
+const userCustomCongratSoundPath = path.join(userMusicDir, "congrat.mp3");
 const userCustomLogoPath = path.join(userLogoDir, "logo.png");
 const userCustomFaviconPath = path.join(userLogoDir, "favicon.png");
 
 let mainWindow;
 const defaultSettings = {
   isMuted: false,
+  bgMusicVolume: 1, // Mặc định là 100% (giá trị từ 0 đến 1)
   companyName: "KHASERVICE",
   customMusicPath: null,
+  customSpinSoundPath: null,
+  customCongratSoundPath: null,
   customLogoPath: null,
   customFaviconPath: null,
   customInfoImagePath: null,
@@ -86,6 +91,8 @@ function imageToDataUrl(filePath) {
 function getPath(type) {
     const pathMap = {
         music: { setting: settings.customMusicPath, default: path.join(app.getAppPath(), "musics", "theme.mp3") },
+        spin: { setting: settings.customSpinSoundPath, default: path.join(app.getAppPath(), "musics", "number.mp3") },
+        congrat: { setting: settings.customCongratSoundPath, default: path.join(app.getAppPath(), "musics", "lucky-number.mp3") },
         logo: { setting: settings.customLogoPath, default: path.join(app.getAppPath(), "images", "logo.png") },
         favicon: { setting: settings.customFaviconPath, default: path.join(app.getAppPath(), "images", "favicon.png") },
         infoImage: { setting: settings.customInfoImagePath, default: path.join(app.getAppPath(), "images", "gif-info.gif") },
@@ -144,9 +151,6 @@ app.on("ready", () => {
   });
 
   mainWindow.loadURL(`file://${path.join(app.getAppPath(), 'RANDOM.html')}`);
-  if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools();
-  }
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow.webContents.send("initial-data", {
@@ -156,14 +160,17 @@ app.on("ready", () => {
         infoImageUrl: imageToDataUrl(getPath('infoImage')),
         backgroundUrl: imageToDataUrl(getPath('backgroundImage')),
         musicPath: getPath('music'),
+        spinSoundPath: getPath('spin'),
+        congratSoundPath: getPath('congrat'),
         isMuted: settings.isMuted,
+        bgMusicVolume: settings.bgMusicVolume,
         effects: settings.effects,
     });
   });
 
   const menu = Menu.buildFromTemplate([
     { label: "Tùy chọn", submenu: [{ label: "Mở Cài đặt", click: () => mainWindow.webContents.send("open-settings", { tab: 'general' }) }, { label: "Thoát", role: "quit" }] },
-    { label: "Nhà phát triển", submenu: [{ role: "toggleDevTools" }, { label: "Cao Minh Thắng - 0376701749", enabled: false }] },
+    { label: "Hỗ trợ", submenu: [{ label: "Cao Minh Thắng - 0376701749", enabled: false }] },
   ]);
   Menu.setApplicationMenu(menu);
 });
@@ -260,4 +267,28 @@ ipcMain.on('update-effects-settings', (event, newEffectsSettings) => {
     saveSettings();
     // Broadcast the confirmed new settings to all windows (or just the main one)
     mainWindow.webContents.send('effects-settings-updated', settings.effects);
+});
+
+ipcMain.on("update-sound-effect", (event, { type, path: sourcePath }) => {
+    try {
+        if (!fs.existsSync(userMusicDir)) fs.mkdirSync(userMusicDir, { recursive: true });
+        
+        let targetPath;
+        if (type === 'spin') {
+            targetPath = userCustomSpinSoundPath;
+            settings.customSpinSoundPath = targetPath;
+        } else if (type === 'congrat') {
+            targetPath = userCustomCongratSoundPath;
+            settings.customCongratSoundPath = targetPath;
+        }
+
+        if (targetPath) {
+            fs.copyFileSync(sourcePath, targetPath);
+            saveSettings();
+            mainWindow.webContents.send("sound-effect-updated", { type, path: targetPath });
+        }
+    } catch (error) {
+        log.error(`Failed to update sound effect (${type}):`, error);
+        dialog.showErrorBox("Lỗi", "Không thể thay đổi âm thanh hiệu ứng.");
+    }
 });
