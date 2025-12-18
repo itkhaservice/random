@@ -607,9 +607,14 @@ Firework.prototype.update = function(index) {
 Firework.prototype.draw = function() {
     ctx.beginPath();
     ctx.setLineDash([6, 3]);
+    ctx.lineCap = 'round';
     ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+    for (let i = this.coordinates.length - 2; i >= 0; i--) {
+        ctx.lineTo(this.coordinates[i][0], this.coordinates[i][1]);
+    }
     ctx.lineTo(this.x, this.y);
     ctx.strokeStyle = "hsl(" + this.hue + ", 100%, " + this.brightness + "%)";
+    ctx.lineWidth = 1;
     ctx.stroke();
     ctx.setLineDash([]);
 };
@@ -618,18 +623,28 @@ function Particle(x, y, customGravity, twinkleEffect, isSubParticle, angle, spee
     this.x = x;
     this.y = y;
     this.coordinates = [];
-    this.coordinateCount = 30; // Tăng đáng kể độ dài tia pháo
+    // Độ dài đuôi biến thiên ngẫu nhiên để tạo sự tự nhiên
+    this.coordinateCount = Math.floor(random(25, 50)); 
     while (this.coordinateCount--) {
         this.coordinates.push([this.x, this.y]);
     }
-    this.angle = angle !== undefined ? angle : random(0, Math.PI * 2);
-    this.speed = speed !== undefined ? speed : random(2, 12); // Tăng vận tốc khởi tạo
-    this.friction = 0.96; // Giảm ma sát một chút để bay xa hơn
-    this.gravity = customGravity !== undefined ? customGravity : 0.6;
-    this.hue = pIdHue !== undefined ? random(pIdHue - 20, pIdHue + 20) : random(hue - 20, hue + 20);
-    this.brightness = random(50, 80);
+    
+    // Góc bắn có thêm một chút nhiễu (jitter)
+    this.angle = angle !== undefined ? angle + random(-0.1, 0.1) : random(0, Math.PI * 2);
+    // Tốc độ ban đầu đa dạng hơn
+    this.speed = speed !== undefined ? speed : random(1, 12); 
+    
+    // Ma sát (mất năng lượng) ngẫu nhiên để các hạt không dừng lại cùng lúc
+    this.friction = random(0.94, 0.98); 
+    // Trọng lực nhẹ nhàng
+    this.gravity = customGravity !== undefined ? customGravity : random(0.3, 0.5); 
+    
+    this.hue = pIdHue !== undefined ? random(pIdHue - 15, pIdHue + 15) : random(hue - 15, hue + 15);
+    this.brightness = random(50, 85);
     this.alpha = 1;
-    this.decay = random(0.01, 0.02); // Giảm tốc độ mờ dần để pháo to hơn
+    
+    // Tốc độ mờ dần (tuổi thọ) cực kỳ quan trọng để tạo sự so le (staggered timing)
+    this.decay = random(0.008, 0.025); 
 
     this.isTwinkling = twinkleEffect;
     this.hasSubExploded = isSubParticle;
@@ -639,28 +654,27 @@ Particle.prototype.update = function(index) {
     this.coordinates.pop();
     this.coordinates.unshift([this.x, this.y]);
     
-    // Logic cho Spiral (Xoắn ốc): Thay đổi góc liên tục để tạo quỹ đạo xoắn
     if (currentFireworkStyle === 'spiral' && !this.hasSubExploded) {
-        this.angle += 0.2; 
+        this.angle += 0.1; 
     }
 
+    // Áp dụng vật lý: mất năng lượng và chịu tác động trọng lực
     this.speed *= this.friction;
     this.x += Math.cos(this.angle) * this.speed;
     this.y += Math.sin(this.angle) * this.speed + this.gravity;
     
+    // Fading light over time
     if (this.isTwinkling) {
-        this.alpha = Math.random() > 0.1 ? this.alpha - this.decay : 1;
+        this.alpha = Math.random() > 0.15 ? this.alpha - this.decay : 1;
     } else {
         this.alpha -= this.decay;
     }
 
-    // Spark Trail: Các hạt đang rơi tạo ra thêm tia lửa nhỏ (spark)
-    if (currentFireworkStyle === 'falling_rain' && Math.random() < 0.2 && this.alpha > 0.3) {
-        particles.push(new Particle(this.x, this.y, 0.02, false, true, random(0, Math.PI * 2), 0.5));
+    if (currentFireworkStyle === 'falling_rain' && Math.random() < 0.1 && this.alpha > 0.3) {
+        particles.push(new Particle(this.x, this.y, 0.05, false, true, random(0, Math.PI * 2), 0.3));
     }
 
-    // Multi-stage (Double Burst): Nổ tầng 2
-    if (currentFireworkStyle === 'double_burst' && !this.hasSubExploded && this.alpha < 0.8 && Math.random() < 0.05) {
+    if (currentFireworkStyle === 'double_burst' && !this.hasSubExploded && this.alpha < 0.7 && Math.random() < 0.03) {
         createParticles(this.x, this.y, true); 
         this.hasSubExploded = true;
     }
@@ -672,11 +686,26 @@ Particle.prototype.update = function(index) {
 
 Particle.prototype.draw = function() {
     ctx.beginPath();
-    ctx.setLineDash([12, 6]); // Nét đứt dài hơn phù hợp với đuôi dài
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    // Vẽ đuôi mềm mại bằng cách giảm dần alpha và độ dày dọc theo các tọa độ cũ
     ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+    
+    for (let i = this.coordinates.length - 2; i >= 0; i--) {
+        // Tạo hiệu ứng nét đứt tự nhiên bằng cách thỉnh thoảng bỏ qua điểm vẽ nếu muốn (ở đây dùng setLineDash để ổn định hơn)
+        ctx.lineTo(this.coordinates[i][0], this.coordinates[i][1]);
+    }
+    
     ctx.lineTo(this.x, this.y);
-    ctx.strokeStyle = "hsla(" + this.hue + ", 100%, " + this.brightness + "%, " + this.alpha + ")";
-    ctx.lineWidth = 1; // Làm mảnh tia pháo lại
+    
+    // Hiệu ứng "Sparky": Nét đứt ngẫu nhiên một chút
+    ctx.setLineDash([random(10, 20), random(5, 15)]);
+    
+    // Độ dày và độ sáng giảm dần khi hạt pháo già đi
+    ctx.lineWidth = this.alpha * 2; 
+    ctx.strokeStyle = "hsla(" + this.hue + ", 100%, " + (this.brightness * this.alpha + 20) + "%, " + this.alpha + ")";
+    
     ctx.stroke();
     ctx.setLineDash([]);
 };
