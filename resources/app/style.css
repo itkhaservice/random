@@ -28,9 +28,11 @@ body {
 .container {
     position: relative;
     z-index: 100 !important;
-    max-width: 800px;
+    max-width: 1200px;
+    width: 95%;
     margin: 0 auto;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 /* =================================================================
@@ -69,53 +71,11 @@ body {
     100% { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); transform: scale(1); }
 }
 
-/* Hiệu ứng tia lửa chạy quanh viền cho số đã chốt */
+/* Hiệu ứng cho số đã chốt */
 .number.finalized {
     animation: pulse-slow 3s ease-in-out infinite;
     border-color: #ffd700; /* Giữ viền vàng mỏng */
     box-shadow: 0 0 15px rgba(212, 0, 0, 0.4);
-}
-
-/* Hai đốm tia lửa chạy đuổi nhau */
-.number::before,
-.number::after {
-    content: '';
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 
-        0 0 10px #fff, 
-        0 0 20px #ffd700, 
-        0 0 30px #ff4500;
-    /* Đường chạy theo viền hình chữ nhật 80x110 */
-    offset-path: path('M 12,-4 H 68 C 75,-4 84,5 84,12 V 98 C 84,105 75,114 68,114 H 12 C 5,114 -4,105 -4,98 V 12 C -4,5 5,-4 12,-4');
-    pointer-events: none;
-    opacity: 0;
-    z-index: 10;
-}
-
-/* Kích hoạt chạy ngầm ngay khi bắt đầu quay để đồng bộ nhịp */
-.number-display.sync-spin .number::before,
-.number-display.sync-spin .number::after {
-    animation: spark-run 1.5s linear infinite;
-}
-
-/* Đốm thứ hai chạy trễ hơn một nửa vòng */
-.number::after {
-    animation-delay: -0.75s !important;
-}
-
-/* Hiện tia lửa cho những ô đã chốt số */
-.number.finalized::before,
-.number.finalized::after {
-    opacity: 1 !important;
-}
-
-@keyframes spark-run {
-    0% { offset-distance: 0%; }
-    100% { offset-distance: 100%; }
 }
 
 @keyframes pulse-slow {
@@ -151,11 +111,24 @@ button.spin-small:hover { background: #ffd700; color: #8b0000; }
 #result-list {
     list-style: none;
     padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Chia cột dày hơn */
+    gap: 10px;
+    margin-top: 10px;
 }
 
 #result-list li {
-    text-align: center; color: white; font-size: 24px;
-    background: rgba(139, 0, 0, 0.3); margin-bottom: 5px; border-radius: 5px; padding: 5px;
+    text-align: center; 
+    color: white; 
+    font-size: 18px; /* Thu nhỏ chữ một chút để vừa cột */
+    background: rgba(139, 0, 0, 0.4); 
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    margin-bottom: 0; 
+    border-radius: 8px; 
+    padding: 8px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Cắt bớt nếu quá dài */
 }
 
 /* =================================================================
@@ -297,5 +270,47 @@ button.spin-small:hover { background: #ffd700; color: #8b0000; }
 .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
 input:checked + .slider { background-color: #2ecc71; }
 input:checked + .slider:before { transform: translateX(22px); }
-.modal-info-congrat { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); z-index: 5000; }
-.lucky-number { position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); font-size: 10rem; color: #f8d329; font-weight: 900; -webkit-text-stroke: 2px #800205; }
+.modal-info-congrat { 
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100vw; height: 100vh; 
+    background-color: rgba(0, 0, 0, 0.85); 
+    z-index: 9000 !important;
+    display: none; /* Trình điều khiển bằng JS */
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-info-content-congrat {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+    height: auto;
+    max-width: 95vw;
+    max-height: 95vh;
+}
+
+.congrat-img {
+    width: auto;
+    height: auto;
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+.lucky-number { 
+    position: absolute; 
+    top: 50%; left: 50%; 
+    transform: translate(-50%, -50%); 
+    font-size: clamp(5rem, 15vw, 12rem); /* Co dãn linh hoạt theo màn hình */
+    color: #f8d329; 
+    font-weight: 900; 
+    -webkit-text-stroke: 3px #800205;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 69, 0, 0.4);
+    z-index: 10;
+    margin: 0;
+    white-space: nowrap;
+}
