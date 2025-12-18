@@ -114,8 +114,8 @@
               <a href="#">Hiệu ứng</a>
             </li>
           </ul>
-           <div class="modal-actions" style="text-align: center; margin-top: 20px; position: absolute; bottom: 20px; width: 100%;">
-              <button id="close-settings-button" class="settings-button cancel">Đóng</button>
+          <div class="sidebar-footer">
+              <button id="close-settings-button" class="settings-button cancel">Đóng Cài Đặt</button>
           </div>
         </div>
         
@@ -123,121 +123,135 @@
         <div class="settings-content">
           <!-- General Settings -->
           <div id="general-settings" class="settings-tab active">
-            <h3>Tùy chỉnh chung</h3>
-            <div id="branding-editor">
-              <div class="setting-entry">
-                <label for="company-name-input">Tên công ty</label>
-                <input type="text" id="company-name-input" placeholder="Nhập tên công ty">
-              </div>
-              <div class="setting-entry">
-                <label for="logo-file-input">Tệp logo (dùng cho logo và favicon)</label>
-                <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/gif">
-              </div>
-               <div class="setting-entry">
-                <label for="info-image-input">Ảnh giới thiệu (GIF, JPG, PNG)</label>
-                <input type="file" id="info-image-input" accept="image/gif, image/jpeg, image/png">
-              </div>
-               <div class="setting-entry">
-                <label for="background-image-input">Ảnh nền</label>
-                <input type="file" id="background-image-input" accept="image/jpeg, image/png, image/gif">
+            <div class="tab-body">
+              <h3>Tùy chỉnh chung</h3>
+              <div id="branding-editor">
+                <div class="setting-entry">
+                  <label for="company-name-input">Tên công ty</label>
+                  <input type="text" id="company-name-input" placeholder="Nhập tên công ty">
+                </div>
+                <div class="setting-entry">
+                  <label for="logo-file-input">Tệp logo (dùng cho logo và favicon)</label>
+                  <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/gif" class="custom-file-input">
+                </div>
+                 <div class="setting-entry">
+                  <label for="info-image-input">Ảnh giới thiệu (GIF, JPG, PNG)</label>
+                  <input type="file" id="info-image-input" accept="image/gif, image/jpeg, image/png" class="custom-file-input">
+                </div>
+                 <div class="setting-entry">
+                  <label for="background-image-input">Ảnh nền</label>
+                  <input type="file" id="background-image-input" accept="image/jpeg, image/png, image/gif" class="custom-file-input">
+                </div>
               </div>
             </div>
-            <button id="save-branding-button" class="settings-button save">Lưu thay đổi</button>
-            <button id="show-info-modal-button" class="settings-button">Hiển thị lại ảnh giới thiệu</button>
+            <div class="tab-footer">
+              <button id="save-branding-button" class="settings-button save">Lưu thay đổi</button>
+              <button id="show-info-modal-button" class="settings-button info-btn">Hiển thị lại ảnh giới thiệu</button>
+            </div>
           </div>
           
           <!-- Prize Settings -->
           <div id="prizes-settings" class="settings-tab">
-            <h3>Cài đặt giải thưởng</h3>
-            <div id="prize-list-editor">
-              <!-- Prize entries will be dynamically inserted here -->
+            <div class="tab-body">
+              <h3>Cài đặt giải thưởng</h3>
+              <div id="prize-list-editor">
+                <!-- Prize entries will be dynamically inserted here -->
+              </div>
             </div>
-            <div class="settings-action-group" style="display: flex; gap: 10px;">
-              <button id="add-prize-button" class="settings-button" style="flex: 1;">Thêm giải thưởng</button>
-              <button id="reset-prizes-button" class="settings-button cancel" style="flex: 1;">Đặt lại mặc định</button>
+            <div class="tab-footer prize-footer">
+              <button id="add-prize-button" class="settings-button add-btn">Thêm giải thưởng</button>
+              <button id="reset-prizes-button" class="settings-button reset-btn">Đặt lại mặc định</button>
+              <button id="save-prizes-button" class="settings-button save">Lưu giải thưởng</button>
             </div>
-            <button id="save-prizes-button" class="settings-button save" style="width: 100%; margin-top: 10px;">Lưu giải thưởng</button>
           </div>
-
+          
           <!-- Sound Settings -->
           <div id="sound-settings" class="settings-tab">
-            <h3>Cài đặt âm thanh</h3>
-            <div class="setting-entry">
-                <label>Âm thanh nền</label>
-                <button id="toggle-sound-button" class="settings-button">Tắt âm thanh</button>
-            </div>
-             <div class="setting-entry">
-                <label>Đổi nhạc nền</label>
-                <button id="change-music-button" class="settings-button">Chọn tệp nhạc</button>
+            <div class="tab-body">
+              <h3>Cài đặt âm thanh</h3>
+              <div class="setting-entry">
+                  <label>Âm thanh nền</label>
+                  <button id="toggle-sound-button" class="settings-button">Tắt âm thanh</button>
+              </div>
+               <div class="setting-entry">
+                  <label>Đổi nhạc nền</label>
+                  <button id="change-music-button" class="settings-button">Chọn tệp nhạc</button>
+              </div>
             </div>
           </div>
 
           <!-- Spin Settings -->
           <div id="layout-settings" class="settings-tab">
-            <h3>Cấu hình thông số quay</h3>
-            <div id="spin-config-editor">
-              <div class="setting-entry">
-                <label for="digit-count-input">Số lượng chữ số (1-4)</label>
-                <input type="number" id="digit-count-input" min="1" max="4" value="3">
-              </div>
-              <div class="setting-entry">
-                <label for="stop-interval-input">Thời gian dừng giữa các ô (ms)</label>
-                <input type="number" id="stop-interval-input" min="500" max="5000" step="100" value="1200">
-              </div>
-              <div class="setting-row" style="display: flex; gap: 20px;">
-                <div class="setting-entry" style="flex: 1;">
-                    <label for="min-value-input">Giá trị nhỏ nhất</label>
-                    <input type="number" id="min-value-input" min="0" value="0">
+            <div class="tab-body">
+              <h3>Cấu hình thông số quay</h3>
+              <div id="spin-config-editor">
+                <div class="setting-entry">
+                  <label for="digit-count-input">Số lượng chữ số (1-4)</label>
+                  <input type="number" id="digit-count-input" min="1" max="4" value="3">
                 </div>
-                <div class="setting-entry" style="flex: 1;">
-                    <label for="max-value-input">Giá trị lớn nhất</label>
-                    <input type="number" id="max-value-input" min="1" value="999">
+                <div class="setting-entry">
+                  <label for="stop-interval-input">Thời gian dừng giữa các ô (ms)</label>
+                  <input type="number" id="stop-interval-input" min="500" max="5000" step="100" value="1200">
                 </div>
-              </div>
-              <div class="setting-entry-row" style="margin-top: 15px;">
-                <label for="allow-duplicate-checkbox">Cho phép trùng số đã trúng</label>
-                <label class="switch">
-                  <input type="checkbox" id="allow-duplicate-checkbox">
-                  <span class="slider round"></span>
-                </label>
+                <div class="setting-row">
+                  <div class="setting-entry">
+                      <label for="min-value-input">Giá trị nhỏ nhất</label>
+                      <input type="number" id="min-value-input" min="0" value="0">
+                  </div>
+                  <div class="setting-entry">
+                      <label for="max-value-input">Giá trị lớn nhất</label>
+                      <input type="number" id="max-value-input" min="1" value="999">
+                  </div>
+                </div>
+                <div class="setting-entry-row">
+                  <label for="allow-duplicate-checkbox">Cho phép trùng số đã trúng</label>
+                  <label class="switch">
+                    <input type="checkbox" id="allow-duplicate-checkbox">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
               </div>
             </div>
-            <div class="settings-action-group" style="display: flex; gap: 10px; margin-top: 15px;">
-              <button id="save-spin-config-button" class="settings-button save" style="flex: 2;">Lưu cấu hình</button>
-              <button id="reset-spin-config-button" class="settings-button cancel" style="flex: 1;">Đặt lại</button>
+            <div class="tab-footer">
+              <button id="save-spin-config-button" class="settings-button save">Lưu cấu hình</button>
+              <button id="reset-spin-config-button" class="settings-button reset-btn">Đặt lại</button>
             </div>
           </div>
 
           <!-- Effects Settings -->
           <div id="effects-settings" class="settings-tab">
-            <h3>Cài đặt hiệu ứng</h3>
-            <div id="effects-editor">
-              <div class="setting-entry-row">
-                <label for="toggle-flowers-checkbox">Hiệu ứng hoa rơi</label>
-                <label class="switch">
-                  <input type="checkbox" id="toggle-flowers-checkbox">
-                  <span class="slider round"></span>
-                </label>
-              </div>
-              <div class="setting-entry">
-                <label for="flower-speed-slider">Tốc độ rơi (hiện tại: <span id="flower-speed-value">1</span>)</label>
-                <input type="range" id="flower-speed-slider" min="0.1" max="5" step="0.1" value="1">
-              </div>
-              <div class="setting-entry-row">
-                <label for="toggle-fireworks-checkbox">Hiệu ứng pháo hoa</label>
-                 <label class="switch">
-                  <input type="checkbox" id="toggle-fireworks-checkbox">
-                  <span class="slider round"></span>
-                </label>
-              </div>
-              <div class="setting-entry">
-                <label>Kiểu pháo hoa</label>
-                <div id="firework-style-cards" class="card-select-container">
-                  <!-- Các thẻ kiểu pháo hoa sẽ được chèn động từ script.js -->
+            <div class="tab-body">
+              <h3>Cài đặt hiệu ứng</h3>
+              <div id="effects-editor">
+                <div class="setting-entry-row">
+                  <label for="toggle-flowers-checkbox">Hiệu ứng hoa rơi</label>
+                  <label class="switch">
+                    <input type="checkbox" id="toggle-flowers-checkbox">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="setting-entry">
+                  <label for="flower-speed-slider">Tốc độ rơi (hiện tại: <span id="flower-speed-value">1</span>)</label>
+                  <input type="range" id="flower-speed-slider" min="0.1" max="5" step="0.1" value="1" class="long-slider">
+                </div>
+                <div class="setting-entry-row">
+                  <label for="toggle-fireworks-checkbox">Hiệu ứng pháo hoa</label>
+                   <label class="switch">
+                    <input type="checkbox" id="toggle-fireworks-checkbox">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div class="setting-entry">
+                  <label>Kiểu pháo hoa</label>
+                  <div id="firework-style-cards" class="card-select-container">
+                    <!-- Các thẻ kiểu pháo hoa sẽ được chèn động từ script.js -->
+                  </div>
                 </div>
               </div>
             </div>
-            <button id="save-effects-button" class="settings-button save">Lưu hiệu ứng</button>
+            <div class="tab-footer">
+              <button id="save-effects-button" class="settings-button save">Lưu hiệu ứng</button>
+            </div>
           </div>
         </div>
       </div>
