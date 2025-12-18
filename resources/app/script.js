@@ -658,16 +658,16 @@ Particle.prototype.update = function(index) {
         this.angle += 0.1; 
     }
 
-    // Áp dụng vật lý: mất năng lượng và chịu tác động trọng lực
     this.speed *= this.friction;
     this.x += Math.cos(this.angle) * this.speed;
     this.y += Math.sin(this.angle) * this.speed + this.gravity;
     
-    // Fading light over time
-    if (this.isTwinkling) {
-        this.alpha = Math.random() > 0.15 ? this.alpha - this.decay : 1;
-    } else {
-        this.alpha -= this.decay;
+    // Đảm bảo alpha luôn giảm để hạt pháo chắc chắn biến mất
+    this.alpha -= this.decay;
+
+    // Nếu hạt pháo bay quá chậm, cho nó biến mất nhanh hơn để tránh "rơi thẳng xuống lâu"
+    if (this.speed < 0.5) {
+        this.alpha -= 0.01;
     }
 
     if (currentFireworkStyle === 'falling_rain' && Math.random() < 0.1 && this.alpha > 0.3) {
@@ -679,7 +679,7 @@ Particle.prototype.update = function(index) {
         this.hasSubExploded = true;
     }
 
-    if (this.alpha <= this.decay) {
+    if (this.alpha <= 0) {
         particles.splice(index, 1);
     }
 };
@@ -689,22 +689,22 @@ Particle.prototype.draw = function() {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     
-    // Vẽ đuôi mềm mại bằng cách giảm dần alpha và độ dày dọc theo các tọa độ cũ
     ctx.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
-    
     for (let i = this.coordinates.length - 2; i >= 0; i--) {
-        // Tạo hiệu ứng nét đứt tự nhiên bằng cách thỉnh thoảng bỏ qua điểm vẽ nếu muốn (ở đây dùng setLineDash để ổn định hơn)
         ctx.lineTo(this.coordinates[i][0], this.coordinates[i][1]);
     }
-    
     ctx.lineTo(this.x, this.y);
     
-    // Hiệu ứng "Sparky": Nét đứt ngẫu nhiên một chút
     ctx.setLineDash([random(10, 20), random(5, 15)]);
     
-    // Độ dày và độ sáng giảm dần khi hạt pháo già đi
-    ctx.lineWidth = this.alpha * 2; 
-    ctx.strokeStyle = "hsla(" + this.hue + ", 100%, " + (this.brightness * this.alpha + 20) + "%, " + this.alpha + ")";
+    // Hiệu ứng lấp lánh (twinkle) chỉ xử lý ở phần hiển thị alpha
+    let displayAlpha = this.alpha;
+    if (this.isTwinkling && Math.random() < 0.2) {
+        displayAlpha = random(0.2, 1); // Chỉ nhấp nháy ánh sáng, không giữ hạt pháo sống lâu hơn
+    }
+
+    ctx.lineWidth = displayAlpha * 1.5; 
+    ctx.strokeStyle = "hsla(" + this.hue + ", 100%, " + (this.brightness * displayAlpha + 20) + "%, " + displayAlpha + ")";
     
     ctx.stroke();
     ctx.setLineDash([]);
@@ -748,11 +748,14 @@ function createParticles(x, y, isSubParticle = false, pIdHue) {
             particles.push(new Particle(x, y, 0.02, false, false, angle, speed, targetHue));
         }
     } else if (style === 'twinkle') {
-        // Tạo 2 lớp lấp lánh - Giảm số lượng theo yêu cầu
+        // Làm hiệu ứng lấp lánh thanh thoát hơn: mảnh hơn, bay nhanh hơn và ít rơi hơn
         for (let layer = 1; layer <= 2; layer++) {
-            let layerCount = 20 + layer * 10;
+            let layerCount = 15 + layer * 10;
             while (layerCount--) {
-                particles.push(new Particle(x, y, 0.4, true, false, undefined, random(2, 10) * layer, targetHue));
+                let p = new Particle(x, y, 0.15, true, false, undefined, random(4, 15) * layer, targetHue);
+                p.decay = random(0.02, 0.04); // Biến mất nhanh hơn để bớt rối
+                p.coordinateCount = 15; // Tia ngắn hơn cho hiệu ứng lấp lánh
+                particles.push(p);
             }
         }
     } else {
