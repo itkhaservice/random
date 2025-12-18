@@ -1,6 +1,6 @@
 {
-  "name": "random-music",
-  "version": "1.0.0",
+  "name": "RANDOM",
+  "version": "3.0.0",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -12,7 +12,7 @@
   },
   "build": {
     "appId": "com.random.music",
-    "productName": "Random Music",
+    "productName": "RANDOM",
     "asar": true,
     "files": [
       "**/*",

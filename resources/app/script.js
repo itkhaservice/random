@@ -383,54 +383,55 @@ ipcRenderer.on("initial-music-path", (event, { musicPath }) => {
     }
   });
 
-  // Listener for branding updates
-  ipcRenderer.on("branding-updated", (event, { newName, newLogoPath, newFaviconPath }) => {
-    // Cập nhật tên công ty nếu cần
-    if (newName) {
-      document.title = `Quay số trúng thưởng - ${newName}`;
-      // Cập nhật bất kỳ chỗ nào khác hiển thị tên công ty
-      // Ví dụ: const companyNameElement = document.getElementById("company-name-display");
-      // if (companyNameElement) companyNameElement.textContent = newName;
-    }
+// Listener for branding updates
+ipcRenderer.on("branding-updated", (event, { newName, newLogoPath, newFaviconPath }) => {
+  if (newName) {
+    document.title = `Quay số trúng thưởng - ${newName}`;
+  }
 
-    // Cập nhật logo
-    const logoImage = document.querySelector(".logo");
-    if (logoImage && newLogoPath) {
-      console.log("Attempting to set logo src to:", newLogoPath); // Debug log
-      alert("New logo path received: " + newLogoPath); // THÊM DÒNG NÀY ĐỂ DEBUG
-      logoImage.src = newLogoPath + "?" + new Date().getTime(); // Thêm timestamp để phá cache
+  const logoImage = document.querySelector(".logo");
+  if (logoImage && newLogoPath) {
+    const logoUrl = toFileUrl(newLogoPath);
+    if (logoUrl) {
+      logoImage.src = `${logoUrl}?t=${Date.now()}`;
+      console.log(`[BRANDING] Updated logo src to: ${logoImage.src}`);
     }
+  }
 
-    // Cập nhật favicon (thẻ link)
-    const faviconLink = document.querySelector("link[rel='icon']");
-    if (faviconLink && newFaviconPath) {
-      faviconLink.href = newFaviconPath + "?" + new Date().getTime(); // Thêm timestamp để phá cache
+  const faviconLink = document.querySelector("link[rel='icon']");
+  if (faviconLink && newFaviconPath) {
+    const faviconUrl = toFileUrl(newFaviconPath);
+    if (faviconUrl) {
+      faviconLink.href = `${faviconUrl}?t=${Date.now()}`;
+      console.log(`[BRANDING] Updated favicon href to: ${faviconLink.href}`);
     }
-  });
+  }
+});
 
-  // Listener for initial branding on app start
-  ipcRenderer.on("initial-branding", (event, { newName, newLogoPath, newFaviconPath }) => {
-    // Thiết lập tên công ty ban đầu
-    if (newName) {
-      document.title = `Quay số trúng thưởng - ${newName}`;
-      // Cập nhật bất kỳ chỗ nào khác hiển thị tên công ty
-      // Ví dụ: const companyNameElement = document.getElementById("company-name-display");
-      // if (companyNameElement) companyNameElement.textContent = newName;
-    }
+// Listener for initial branding on app start
+ipcRenderer.on("initial-branding", (event, { newName, newLogoPath, newFaviconPath }) => {
+  if (newName) {
+    document.title = `Quay số trúng thưởng - ${newName}`;
+  }
 
-    // Thiết lập logo ban đầu
-    const logoImage = document.querySelector(".logo");
-    if (logoImage && newLogoPath) {
-      console.log("Attempting to set initial logo src to:", newLogoPath); // Debug log
-      logoImage.src = newLogoPath;
+  const logoImage = document.querySelector(".logo");
+  if (logoImage && newLogoPath) {
+    const logoUrl = toFileUrl(newLogoPath);
+    if (logoUrl) {
+      logoImage.src = logoUrl;
+      console.log(`[BRANDING] Set initial logo src to: ${logoImage.src}`);
     }
+  }
 
-    // Thiết lập favicon ban đầu
-    const faviconLink = document.querySelector("link[rel='icon']");
-    if (faviconLink && newFaviconPath) {
-      faviconLink.href = newFaviconPath;
+  const faviconLink = document.querySelector("link[rel='icon']");
+  if (faviconLink && newFaviconPath) {
+    const faviconUrl = toFileUrl(newFaviconPath);
+    if (faviconUrl) {
+      faviconLink.href = faviconUrl;
+      console.log(`[BRANDING] Set initial favicon href to: ${faviconLink.href}`);
     }
-  });
+  }
+});
 
   // Listener for info image updates
   ipcRenderer.on("info-image-updated", (event, { infoImagePath }) => {
