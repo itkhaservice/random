@@ -292,6 +292,12 @@ app.on("window-all-closed", () => app.quit());
 
 ipcMain.handle('get-setting', (event, key) => settings[key]);
 
+ipcMain.handle('save-setting', (event, key, value) => {
+    settings[key] = value;
+    saveSettings();
+    return true;
+});
+
 ipcMain.on('toggle-sound-from-renderer', (event) => {
     settings.isMuted = !settings.isMuted;
     saveSettings();
