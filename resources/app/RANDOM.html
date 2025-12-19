@@ -15,13 +15,13 @@
     <canvas id="fallingCanvasMai"></canvas>
     <canvas id="fallingCanvasDao"></canvas>
     <!-- Hoa mai cố định ở góc phải -->
-    <img src="./images/mai.png" class="fixed-flower fixed-mai" alt="Hoa Mai" />
+    <img id="img-mai" class="fixed-flower fixed-mai" alt="Hoa Mai" />
 
     <!-- Hoa đào cố định ở góc trái -->
-    <img src="./images/dao.png" class="fixed-flower fixed-dao" alt="Hoa Đào" />
+    <img id="img-dao" class="fixed-flower fixed-dao" alt="Hoa Đào" />
     <div class="container">
-      <audio id="audio-player" src="./musics/lucky-number.mp3"></audio>
-      <audio id="audio-player1" src="./musics/number.mp3"></audio>
+      <audio id="audio-player"></audio>
+      <audio id="audio-player1"></audio>
       <audio id="audio-player2" loop></audio>
       <div>
         <img
@@ -285,8 +285,10 @@
     </div>
 
     <canvas id="canvas"></canvas>
+    <script src="./js/FireworkEngine.js"></script>
+    <script src="./js/SpinEngine.js"></script>
+    <script src="./js/UIManager.js"></script>
     <script src="./script.js"></script>
-    <script src="./fallingFlowers.js"></script>
     <div id="infoModal" class="modal-info">
       <div class="modal-info-content">
         <img alt="Welcome Animation" />
@@ -297,7 +299,7 @@
       <div class="modal-info-content-congrat">
         <!-- <img src="./images/congrat.png" alt="Congratulations Image" class="congrat-img" /> -->
         <img
-          src="./images/gif-congrat.gif"
+          id="img-congrat"
           alt="Congrat Animation"
           class="congrat-img"
         />

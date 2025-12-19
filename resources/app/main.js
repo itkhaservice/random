@@ -2,7 +2,26 @@ const { app, BrowserWindow, Menu, dialog, shell, ipcMain } = require("electron")
 const path = require("path");
 const fs = require("fs");
 const log = require('electron-log');
-const _ = require('lodash');
+
+// =================================================================
+// Utility Functions
+// =================================================================
+
+function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
+function deepMerge(target, source) {
+    for (const key in source) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+            if (!target[key]) target[key] = {};
+            deepMerge(target[key], source[key]);
+        } else {
+            target[key] = source[key];
+        }
+    }
+    return target;
+}
 
 // =================================================================
 // Configuration and Paths
@@ -51,7 +70,7 @@ const defaultSettings = {
       }
   }
 };
-let settings = _.cloneDeep(defaultSettings);
+let settings = deepClone(defaultSettings);
 
 
 // =================================================================
@@ -89,20 +108,58 @@ function imageToDataUrl(filePath) {
 // =================================================================
 
 function getPath(type) {
-    const pathMap = {
-        music: { setting: settings.customMusicPath, default: path.join(app.getAppPath(), "musics", "theme.mp3") },
-        spin: { setting: settings.customSpinSoundPath, default: path.join(app.getAppPath(), "musics", "number.mp3") },
-        congrat: { setting: settings.customCongratSoundPath, default: path.join(app.getAppPath(), "musics", "lucky-number.mp3") },
-        logo: { setting: settings.customLogoPath, default: path.join(app.getAppPath(), "images", "logo.png") },
-        favicon: { setting: settings.customFaviconPath, default: path.join(app.getAppPath(), "images", "favicon.png") },
-        infoImage: { setting: settings.customInfoImagePath, default: path.join(app.getAppPath(), "images", "gif-info.gif") },
-        backgroundImage: { setting: settings.customBackgroundImagePath, default: path.join(app.getAppPath(), "images", "background.png") },
+    // Định nghĩa tên file cho từng loại
+    const fileNames = {
+        music: "musics/theme.mp3",
+        spin: "musics/number.mp3",
+        congrat: "musics/lucky-number.mp3",
+        logo: "images/logo.png",
+        favicon: "images/favicon.png",
+        infoImage: "images/gif-info.gif",
+        backgroundImage: "images/background.png",
+        // Static resources
+        mai: "images/mai.png",
+        dao: "images/dao.png",
+        hoamai: "images/hoamai.png",
+        hoadao: "images/hoadao.png",
+        gifCongrat: "images/gif-congrat.gif"
     };
-    const paths = pathMap[type];
-    if (paths && paths.setting && fs.existsSync(paths.setting)) {
-        return paths.setting;
+
+    const fileName = fileNames[type];
+    if (!fileName) return null;
+
+    // 1. Kiểm tra setting của người dùng trước
+    const settingKey = type === 'music' ? 'customMusicPath' :
+                       type === 'spin' ? 'customSpinSoundPath' :
+                       type === 'congrat' ? 'customCongratSoundPath' :
+                       type === 'logo' ? 'customLogoPath' :
+                       type === 'favicon' ? 'customFaviconPath' :
+                       type === 'infoImage' ? 'customInfoImagePath' :
+                       type === 'backgroundImage' ? 'customBackgroundImagePath' : 
+                       null; // Các loại static không có custom path
+
+    if (settingKey && settings[settingKey] && fs.existsSync(settings[settingKey])) {
+        return settings[settingKey];
     }
-    return paths ? paths.default : null;
+
+    // 2. Nếu không có setting, tìm file mặc định
+    
+    // Ưu tiên 1: Thử tìm trong thư mục resources (unpacked) - Dùng cho bản Build (Production)
+    // Trình duyệt (Renderer) cần đường dẫn vật lý thực tế để phát nhạc/video
+    let defaultPath = path.join(process.resourcesPath, fileName);
+    if (fs.existsSync(defaultPath)) {
+        return defaultPath;
+    }
+
+    // Ưu tiên 2: Thử tìm trong gói ứng dụng (ASAR) hoặc thư mục gốc - Dùng cho Môi trường Dev
+    defaultPath = path.join(app.getAppPath(), fileName);
+    if (fs.existsSync(defaultPath)) {
+        return defaultPath;
+    }
+    
+    // Log lỗi nếu không tìm thấy
+    log.error(`Could not find default file for ${type}. Checked in appPath and resourcesPath.`);
+    return null;
 }
 
 function saveSettings() {
@@ -114,42 +171,84 @@ function saveSettings() {
 }
 
 function loadSettings() {
+  let isNewVersion = false;
+  const currentVersion = app.getVersion();
+
   try {
     if (fs.existsSync(settingsPath)) {
       const loadedSettings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"));
-      // Deep merge with defaults to ensure new settings properties are added
-      settings = _.merge(_.cloneDeep(defaultSettings), loadedSettings);
       
-      // Validate paths
-      for (const key in settings) {
-          if (key.includes('Path') && settings[key] && typeof settings[key] === 'string' && !fs.existsSync(settings[key])) {
-             settings[key] = null;
+      // HARD RESET: Nếu version khác nhau, xóa settings cũ và dùng mặc định
+      // Đây là cách an toàn nhất để fix lỗi đường dẫn cũ trỏ vào asar không tồn tại
+      if (loadedSettings.lastRunVersion !== currentVersion) {
+          log.info(`Phát hiện phiên bản mới (${currentVersion} vs ${loadedSettings.lastRunVersion}). Đang reset toàn bộ cài đặt về mặc định...`);
+          
+          // Xóa file settings cũ để đảm bảo sạch sẽ
+          try {
+            fs.unlinkSync(settingsPath);
+          } catch(e) { 
+            log.error("Không thể xóa settings cũ:", e); 
+          }
+
+          settings = deepClone(defaultSettings);
+          settings.lastRunVersion = currentVersion;
+          isNewVersion = true;
+      } else {
+          // Deep merge with defaults to ensure new settings properties are added
+          settings = deepMerge(deepClone(defaultSettings), loadedSettings);
+          
+          // Validate paths: Quan trọng! Kiểm tra nếu file không tồn tại thì reset về null
+          for (const key in settings) {
+              if (key.includes('Path') && settings[key] && typeof settings[key] === 'string') {
+                  if (!fs.existsSync(settings[key])) {
+                      log.warn(`Đường dẫn không tồn tại, reset về null: ${key} -> ${settings[key]}`);
+                      settings[key] = null;
+                  }
+              }
           }
       }
+    } else {
+        // Lần chạy đầu tiên
+        settings.lastRunVersion = currentVersion;
     }
+    saveSettings(); // Lưu lại settings (kèm version mới)
   } catch (error) {
     log.error("Failed to load settings:", error);
-    settings = _.cloneDeep(defaultSettings);
+    settings = deepClone(defaultSettings);
+    settings.lastRunVersion = currentVersion;
   }
+  return isNewVersion;
 }
 
 // =================================================================
 // Application Lifecycle
 // =================================================================
-app.on("ready", () => {
-  loadSettings();
+app.on("ready", async () => {
+  const isNewVersion = loadSettings();
 
   mainWindow = new BrowserWindow({
     width: 1919,
     height: 960,
     title: `Quay số trúng thưởng - ${settings.companyName}`,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      webSecurity: false
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: false,
+      preload: path.join(__dirname, 'preload.js')
     },
   });
 
+  if (isNewVersion) {
+      try {
+          await mainWindow.webContents.session.clearCache();
+          await mainWindow.webContents.session.clearStorageData();
+          log.info("Đã xóa Cache và Storage cho phiên bản mới.");
+      } catch (err) {
+          log.error("Lỗi khi xóa cache:", err);
+      }
+  }
+
+  // Mở ứng dụng
   mainWindow.loadURL(`file://${path.join(app.getAppPath(), 'RANDOM.html')}`);
 
   mainWindow.webContents.on('did-finish-load', () => {
@@ -159,12 +258,22 @@ app.on("ready", () => {
         faviconUrl: imageToDataUrl(getPath('favicon')),
         infoImageUrl: imageToDataUrl(getPath('infoImage')),
         backgroundUrl: imageToDataUrl(getPath('backgroundImage')),
+        // Static images
+        maiUrl: imageToDataUrl(getPath('mai')),
+        daoUrl: imageToDataUrl(getPath('dao')),
+        gifCongratUrl: imageToDataUrl(getPath('gifCongrat')),
+        hoaMaiPath: getPath('hoamai'), // Cần path cho canvas loader
+        hoaDaoPath: getPath('hoadao'), // Cần path cho canvas loader
+        // Audio
         musicPath: getPath('music'),
         spinSoundPath: getPath('spin'),
         congratSoundPath: getPath('congrat'),
         isMuted: settings.isMuted,
         bgMusicVolume: settings.bgMusicVolume,
         effects: settings.effects,
+        spinConfig: settings.spinConfig, // Gửi config quay số
+        prizeStatus: settings.prizeStatus, // Gửi trạng thái giải thưởng
+        results: settings.results // Gửi danh sách kết quả
     });
   });
 
@@ -263,7 +372,7 @@ ipcMain.on("update-background-image", (event, arg) => {
 });
 
 ipcMain.on('update-effects-settings', (event, newEffectsSettings) => {
-    settings.effects = _.merge(settings.effects, newEffectsSettings);
+    settings.effects = deepMerge(settings.effects, newEffectsSettings);
     saveSettings();
     // Broadcast the confirmed new settings to all windows (or just the main one)
     mainWindow.webContents.send('effects-settings-updated', settings.effects);

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./images/favicon.png" type="image/png" />
+    <title>Quay số trúng thưởng - KHASERVICE</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <canvas id="fallingCanvasMai"></canvas>
+    <canvas id="fallingCanvasDao"></canvas>
+    <!-- Hoa mai cố định ở góc phải -->
+    <img src="./images/mai.png" class="fixed-flower fixed-mai" alt="Hoa Mai" />
+
+    <!-- Hoa đào cố định ở góc trái -->
+    <img src="./images/dao.png" class="fixed-flower fixed-dao" alt="Hoa Đào" />
+    <div class="container">
+      <audio id="audio-player" src="./musics/lucky-number.mp3"></audio>
+      <audio id="audio-player1" src="./musics/number.mp3"></audio>
+      <audio id="audio-player2" loop>
+        <source src="./musics/theme.mp3" type="audio/mp3" />
+      </audio>
+      <div>
+        <img
+          src="./images/logo.png"
+          alt="Logo"
+          class="logo"
+          style="width: 5%; height: auto"
+        />
+        <h1
+          style="
+            font-family: 'Quicksand', sans-serif;
+            color: #ffd700;
+            font-size: 52px;
+            font-weight: bold 700;
+            margin: auto;
+          "
+        >
+          Quay số trúng thưởng
+        </h1>
+        <h2
+          class="price"
+          style="font-family: 'Quicksand', sans-serif; color: #ffd700"
+        ></h2>
+        <!-- Tiêu đề giải thưởng -->
+      </div>
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 20px;
+        "
+      >
+        <div class="number-display">
+          <div class="number" id="number1">0</div>
+          <div class="number" id="number2">0</div>
+          <div class="number" id="number3">0</div>
+        </div>
+        <div class="manual-spin-button">
+          <button>QUAY</button>
+        </div>
+      </div>
+      <div class="number-buttons">
+        <button class="spin-small" data-prize="Giải đặc biệt" data-count="1">
+          Giải đặc biệt
+        </button>
+        <button class="spin-small" data-prize="Giải nhất" data-count="1">
+          Giải nhất
+        </button>
+        <button class="spin-small" data-prize="Giải nhì" data-count="3">
+          Giải nhì
+        </button>
+        <button class="spin-small" data-prize="Giải ba" data-count="5">
+          Giải ba
+        </button>
+        <button
+          class="spin-small"
+          data-prize="Giải khuyến khích"
+          data-count="10"
+        >
+          Giải khuyến khích
+        </button>
+        <button class="spin-small" data-prize="Giải phụ" data-count="20">
+          Giải phụ
+        </button>
+      </div>
+
+      <div class="results">
+        <h3>Danh sách kết quả đã quay:</h3>
+        <ul id="result-list"></ul>
+      </div>
+    </div>
+    <!-- Modal -->
+    <div id="notification-modal" class="modal hidden">
+      <div class="modal-content">
+        <p id="modal-message"></p>
+        <button id="close-modal">OK</button>
+      </div>
+    </div>
+
+    <!-- Prize Settings Modal -->
+    <div id="prize-settings-modal" class="modal hidden">
+      <div class="modal-content" style="max-width: 600px;">
+        <h2 style="text-align: center; color: #333;">Cài đặt giải thưởng</h2>
+        <div id="prize-list-editor">
+          <!-- Prize entries will be dynamically inserted here -->
+        </div>
+        <button id="add-prize-button" class="settings-button">Thêm giải thưởng</button>
+        <div class="modal-actions" style="text-align: center; margin-top: 20px;">
+          <button id="save-prizes-button" class="settings-button save">Lưu thay đổi</button>
+          <button id="cancel-prizes-button" class="settings-button cancel">Hủy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Branding Settings Modal -->
+    <div id="branding-settings-modal" class="modal hidden">
+      <div class="modal-content" style="max-width: 600px;">
+        <h2 style="text-align: center; color: #333;">Tùy chỉnh thương hiệu</h2>
+        <div id="branding-editor">
+          <div class="setting-entry">
+            <label for="company-name-input">Tên công ty</label>
+            <input type="text" id="company-name-input" placeholder="Nhập tên công ty">
+          </div>
+          <div class="setting-entry">
+            <label for="logo-file-input">Tệp logo</label>
+            <input type="file" id="logo-file-input" accept="image/png, image/jpeg, image/gif">
+          </div>
+        </div>
+        <div class="modal-actions" style="text-align: center; margin-top: 20px;">
+          <button id="save-branding-button" class="settings-button save">Lưu thay đổi</button>
+          <button id="cancel-branding-button" class="settings-button cancel">Hủy</button>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+    <script src="./script.js"></script>
+    <script src="./fallingFlowers.js"></script>
+    <!-- <div id="infoModal" class="modal-info">
+      <div class="modal-info-content">
+        <img src="./images/gif-info.gif" alt="Welcome Animation" />
+      </div>
+    </div> -->
+
+    <div id="congratulationsModal" class="modal-info-congrat">
+      <div class="modal-info-content-congrat">
+        <!-- <img src="./images/congrat.png" alt="Congratulations Image" class="congrat-img" /> -->
+        <img
+          src="./images/gif-congrat.gif"
+          alt="Congrat Animation"
+          class="congrat-img"
+        />
+        <div id="lucky-number-display" class="lucky-number">000</div>
+      </div>
+    </div>
+
+    <script>
+      // Lấy modal
+      const infoModal = document.getElementById("infoModal");
+
+      // Đóng modal khi bấm ra ngoài
+      infoModal.addEventListener("click", function (e) {
+        if (e.target === infoModal) {
+          infoModal.classList.add("hidden"); // Thêm lớp hidden để ẩn modal
+        }
+      });
+
+      // Hiển thị modal khi trang được tải
+      window.addEventListener("load", function () {
+        infoModal.classList.remove("hidden");
+      });
+    </script>
+  </body>
+</html>
