@@ -41,6 +41,7 @@ class UIManager {
             
             // Settings Inputs
             companyNameInput: document.getElementById("company-name-input"),
+            hideLogoCheckbox: document.getElementById("hide-logo-checkbox"),
             logoFileInput: document.getElementById("logo-file-input"),
             infoImageInput: document.getElementById("info-image-input"),
             backgroundImageInput: document.getElementById("background-image-input"),
@@ -58,10 +59,15 @@ class UIManager {
             
             // Effects Inputs
             toggleFlowersCheckbox: document.getElementById('toggle-flowers-checkbox'),
+            toggleFixedFlowersCheckbox: document.getElementById('toggle-fixed-flowers-checkbox'),
             flowerSpeedSlider: document.getElementById('flower-speed-slider'),
             flowerSpeedValue: document.getElementById('flower-speed-value'),
             toggleFireworksCheckbox: document.getElementById('toggle-fireworks-checkbox'),
             fireworkStyleCardsContainer: document.getElementById('firework-style-cards'),
+            
+            // Fixed Flowers
+            fixedMai: document.getElementById('img-mai'),
+            fixedDao: document.getElementById('img-dao'),
             
             // Control Buttons
             saveBrandingButton: document.getElementById("save-branding-button"),
@@ -139,7 +145,7 @@ class UIManager {
         });
     }
 
-    updateBranding(name, logoUrl, faviconUrl) {
+    updateBranding(name, logoUrl, faviconUrl, isLogoHidden) {
         if (name) document.title = `Quay số trúng thưởng - ${name}`;
         if (logoUrl) document.querySelector(".logo").src = logoUrl;
         if (faviconUrl) {
@@ -147,6 +153,16 @@ class UIManager {
             link.rel = 'icon';
             link.href = faviconUrl;
             document.head.appendChild(link);
+        }
+        if (isLogoHidden !== undefined) {
+            this.setLogoVisibility(isLogoHidden);
+        }
+    }
+
+    setLogoVisibility(hidden) {
+        const logo = document.querySelector(".logo");
+        if (logo) {
+            logo.style.visibility = hidden ? 'hidden' : 'visible';
         }
     }
 
@@ -267,6 +283,15 @@ class UIManager {
         }
     }
 
+    setFixedFlowerEffects(enabled) {
+        // Default to true if enabled is undefined
+        const isVisible = enabled !== false; 
+        const displayStyle = isVisible ? 'block' : 'none';
+        
+        if (this.elements.fixedMai) this.elements.fixedMai.style.display = displayStyle;
+        if (this.elements.fixedDao) this.elements.fixedDao.style.display = displayStyle;
+    }
+
     // --- Modal Management ---
     showNotification(message) {
         this.elements.modalMessage.textContent = message;
@@ -291,10 +316,16 @@ class UIManager {
             this.elements.companyNameInput.value = name || "";
         });
 
+        // Populate logo visibility
+        window.electronAPI.invoke('get-setting', 'isLogoHidden').then(isHidden => {
+            this.elements.hideLogoCheckbox.checked = !!isHidden;
+        });
+
         // Populate effects settings
         window.electronAPI.invoke('get-setting', 'effects').then(effects => {
             if(effects) {
                 this.elements.toggleFlowersCheckbox.checked = effects.flowers.enabled;
+                this.elements.toggleFixedFlowersCheckbox.checked = effects.fixedFlowers !== undefined ? effects.fixedFlowers : true;
                 this.elements.flowerSpeedSlider.value = effects.flowers.speed;
                 this.elements.flowerSpeedValue.textContent = effects.flowers.speed;
                 this.elements.toggleFireworksCheckbox.checked = effects.fireworks.enabled;
@@ -479,12 +510,14 @@ class UIManager {
     handleSaveBranding() {
         const name = this.elements.companyNameInput.value.trim();
         const logoFile = this.elements.logoFileInput.files[0];
-        const brandingPayload = {};
+        const isLogoHidden = this.elements.hideLogoCheckbox.checked;
+
+        const brandingPayload = { isLogoHidden }; // Always send visibility status
         if (name) brandingPayload.name = name;
         if (logoFile) brandingPayload.logoPath = window.electronAPI.getFilePath(logoFile);
-        if (Object.keys(brandingPayload).length > 0) {
-            window.electronAPI.send("update-branding", brandingPayload);
-        }
+        
+        // Always send update because isLogoHidden might have changed even if name/file didn't
+        window.electronAPI.send("update-branding", brandingPayload);
 
         const infoImageFile = this.elements.infoImageInput.files[0];
         if (infoImageFile) {
@@ -544,6 +577,7 @@ class UIManager {
                 enabled: this.elements.toggleFlowersCheckbox.checked,
                 speed: parseFloat(this.elements.flowerSpeedSlider.value),
             },
+            fixedFlowers: this.elements.toggleFixedFlowersCheckbox.checked,
             fireworks: {
                 enabled: this.elements.toggleFireworksCheckbox.checked,
                 style: selectedStyle,

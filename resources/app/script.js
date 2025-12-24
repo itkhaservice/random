@@ -60,6 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
     uiManager = new UIManager(spinEngine, fireworkEngine);
 
     // 3. IPC Event Listeners (using electronAPI from preload)
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'F11') {
+            e.preventDefault();
+            window.electronAPI.send('toggle-fullscreen');
+        }
+    });
+
     window.electronAPI.on('open-settings', ({ tab }) => uiManager.openSettings(tab));
 
     window.electronAPI.on("sound-state-changed", ({ muted, isInitial }) => {
@@ -103,8 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
         uiManager.showNotification("Đã thay đổi ảnh giới thiệu!");
     });
 
-    window.electronAPI.on("branding-updated", ({ newName, newLogoUrl, newFaviconUrl }) => {
-        uiManager.updateBranding(newName, newLogoUrl, newFaviconUrl);
+    window.electronAPI.on("branding-updated", ({ newName, newLogoUrl, newFaviconUrl, isLogoHidden }) => {
+        uiManager.updateBranding(newName, newLogoUrl, newFaviconUrl, isLogoHidden);
         uiManager.showNotification("Đã cập nhật thương hiệu!");
     });
 
@@ -115,12 +122,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         uiManager.setFlowerEffects(effects.flowers.enabled, effects.flowers.speed);
+        uiManager.setFixedFlowerEffects(effects.fixedFlowers);
         uiManager.showNotification("Đã cập nhật cài đặt hiệu ứng!");
     });
 
     window.electronAPI.on("initial-data", (data) => {
         // Branding & Images
-        uiManager.updateBranding(data.companyName, data.logoUrl, data.faviconUrl);
+        uiManager.updateBranding(data.companyName, data.logoUrl, data.faviconUrl, data.isLogoHidden);
         uiManager.setBackground(data.backgroundUrl);
         uiManager.setInfoImage(data.infoImageUrl);
 
@@ -165,6 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 fireworkEngine.setStyle(data.effects.fireworks.style || 'classic');
             }
             uiManager.setFlowerEffects(data.effects.flowers.enabled, data.effects.flowers.speed);
+            uiManager.setFixedFlowerEffects(data.effects.fixedFlowers);
         }
 
         // Spin Config

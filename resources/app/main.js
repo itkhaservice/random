@@ -51,6 +51,7 @@ const defaultSettings = {
   isMuted: false,
   bgMusicVolume: 1, // Mặc định là 100% (giá trị từ 0 đến 1)
   companyName: "KHASERVICE",
+  isLogoHidden: false,
   customMusicPath: null,
   customSpinSoundPath: null,
   customCongratSoundPath: null,
@@ -227,8 +228,8 @@ app.on("ready", async () => {
   const isNewVersion = loadSettings();
 
   mainWindow = new BrowserWindow({
-    width: 1919,
-    height: 960,
+    width: 1280,
+    height: 720,
     title: `Quay số trúng thưởng - ${settings.companyName}`,
     webPreferences: {
       nodeIntegration: false,
@@ -270,6 +271,7 @@ app.on("ready", async () => {
         congratSoundPath: getPath('congrat'),
         isMuted: settings.isMuted,
         bgMusicVolume: settings.bgMusicVolume,
+        isLogoHidden: settings.isLogoHidden,
         effects: settings.effects,
         spinConfig: settings.spinConfig, // Gửi config quay số
         prizeStatus: settings.prizeStatus, // Gửi trạng thái giải thưởng
@@ -304,6 +306,20 @@ ipcMain.on('toggle-sound-from-renderer', (event) => {
     mainWindow.webContents.send("sound-state-changed", { muted: settings.isMuted, isInitial: false });
 });
 
+ipcMain.on('toggle-fullscreen', () => {
+    const isFullScreen = mainWindow.isFullScreen();
+    // Nếu chưa Fullscreen -> Sẽ bật Fullscreen -> Cần ẩn Menu
+    // Nếu đang Fullscreen -> Sẽ tắt Fullscreen -> Cần hiện Menu
+    
+    if (!isFullScreen) {
+        mainWindow.setMenuBarVisibility(false); // Ẩn menu trước khi full screen để mượt hơn
+        mainWindow.setFullScreen(true);
+    } else {
+        mainWindow.setFullScreen(false);
+        mainWindow.setMenuBarVisibility(true);
+    }
+});
+
 ipcMain.on('open-change-music-dialog', async () => {
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, { properties: ["openFile"], filters: [{ name: "Audio", extensions: ["mp3", "wav", "ogg"] }] });
     if (!canceled && filePaths.length > 0) {
@@ -320,11 +336,16 @@ ipcMain.on('open-change-music-dialog', async () => {
     }
 });
 
-ipcMain.on("update-branding", (event, { name, logoPath }) => {
+ipcMain.on("update-branding", (event, { name, logoPath, isLogoHidden }) => {
   if (name) {
     settings.companyName = name;
     mainWindow.setTitle(`Quay số trúng thưởng - ${settings.companyName}`);
   }
+  
+  if (isLogoHidden !== undefined) {
+      settings.isLogoHidden = isLogoHidden;
+  }
+
   if (logoPath) {
     try {
       if (!fs.existsSync(userLogoDir)) fs.mkdirSync(userLogoDir, { recursive: true });
@@ -342,6 +363,7 @@ ipcMain.on("update-branding", (event, { name, logoPath }) => {
     newName: settings.companyName,
     newLogoUrl: imageToDataUrl(getPath('logo')),
     newFaviconUrl: imageToDataUrl(getPath('favicon')),
+    isLogoHidden: settings.isLogoHidden
   });
 });
 

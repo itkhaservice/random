@@ -18,7 +18,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
             'update-info-image',
             'update-background-image',
             'update-effects-settings',
-            'update-sound-effect'
+            'update-sound-effect',
+            'toggle-fullscreen'
         ];
         if (validChannels.includes(channel)) {
             ipcRenderer.send(channel, data);
